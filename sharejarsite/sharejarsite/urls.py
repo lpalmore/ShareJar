@@ -17,6 +17,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'', include('sharejarapp.urls')),
+    url(r'^sharejar/', include('sharejarapp.urls')),
     url(r'^admin/', admin.site.urls),
 ]
