@@ -1,17 +1,35 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.template import loader
 
 def home(request):
-    return HttpResponse("home page")
+
+
+    template = loader.get_template('sharejarapp/index.html')
+    context = {
+    }
+    return HttpResponse(template.render(context, request))
 
 def teamStats(request):
-    return HttpResponse("team page")
+    template = loader.get_template('sharejarapp/teamStats.html')
+    context = {
+    }
+    return HttpResponse(template.render(context, request))
 
 def addBalance(request):
-    return HttpResponse("add to balance")
+    template = loader.get_template('sharejarapp/addBalance.html')
+    context = {
+    }
+    return HttpResponse(template.render(context, request))
 
 def currentBalance(request):
-    return HttpResponse("current balance")
+    template = loader.get_template('sharejarapp/currentBalance.html')
+    context = {
+    }
+    return HttpResponse(template.render(context, request))
 
 def joinTeam(request):
-    return HttpResponse("join a team")
+    template = loader.get_template('sharejarapp/joinTeam.html')
+    context = {
+    }
+    return HttpResponse(template.render(context, request))
