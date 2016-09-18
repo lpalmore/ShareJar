@@ -1,0 +1,44 @@
+
+<title>
+{% block title %} Share Jar {% endblock %}
+</title>
+
+{% block navbar %}
+<style>
+    li b{ 
+        display: block;
+        color: white;
+        padding: 14px 16px;
+        text-decoration: none;
+        float: left;
+    
+    }
+    li a {
+        display: block;
+        color: white;
+        padding: 14px 16px;
+        text-decoration: none;
+        float: right;
+    } 
+    ul {
+       list-style-type: none;
+       margin: 0;
+       padding: 0;
+       overflow: hidden;
+       background-color: #333;
+    }    
+
+</style>
+<ul>
+    <li> <b> Share Jar </b>
+    <li>{% block navhome %} <a href="{% url 'home' %}">Home</a>{% endblock %}</li>
+    <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
+    <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
+    <li>{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
+    <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
+</ul>
+{% endblock %}
+
+{% block content%}
+{% endblock %}
+
