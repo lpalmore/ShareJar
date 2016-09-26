@@ -3,14 +3,14 @@
 {% block title %} Add Balance {% endblock %}
 
 {% block content %}
+<div class="center">
 <div class="header-text">
 Add a balance!<br><br>
 </div>
 {% if charities %}
-<div class="styled-select styled-input">
    <form>
       Select a Charity<br>
-      <select name="charity" class="styled-select">
+      <select class="styled-select" name="charity" class="styled-select">
          {% for charity in charities %}
             <option value="{{charity}}">{{charity}}</option>
          {% endfor %}
@@ -18,13 +18,12 @@ Add a balance!<br><br>
       <br><br>
 
       Enter amount<br>
-      <input type="number" name="amount" min="1">
+      <input class="styled-input" type="number" name="amount" min="1">
       <br><br>
-      <input type="submit">
-      </div>
+      <input class="styled-submit" type="submit">
    </form>
 {% else %}
  You have no charities to donate to!
 {% endif %}
-   
+ </div>
 {% endblock %}
