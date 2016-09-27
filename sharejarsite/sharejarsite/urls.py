@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'', include('sharejarapp.urls')), #sharejarapp urls
     url(r'^login/$', auth_views.login), #login
     url('^', include('django.contrib.auth.urls')), #required for login - login views available
+    url(r'^logout/$', auth_views.logout,{'next_page': '/registration/login'})
 ]
