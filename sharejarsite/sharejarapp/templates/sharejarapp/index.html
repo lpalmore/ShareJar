@@ -4,6 +4,7 @@
 
 <p>This is the home page</p>
 <form method="post" action="{% url 'logout' %}">
+{% csrf_token %}
 </p>
     <input class="btn btn-success btn-sm" type="submit" value="logout" />
 </p>
