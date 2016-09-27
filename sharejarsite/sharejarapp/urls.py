@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^teamStats', views.teamStats, name='teamStats'),
     url(r'^addBalance', views.addBalance, name='addBalance'),
     url(r'^currentBalance', views.currentBalance, name='currentBalance'),
+    url(r'^createUser', views.createUser, name='createUser'),
 ]
 # For finding static files during development
 urlpatterns += staticfiles_urlpatterns()

@@ -2,7 +2,26 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from forms import UserForm
+from django.contrib.auth import login
+from django.http import HttpResponseRedirect
 
+
+def createUser(request):
+    #if post request, create the new user
+    if request.method == "POST":
+        form = UserForm(request.POST)
+        if form.is_valid():
+            newUser = User.objects.create_user(**form.cleaned_data)
+            return HttpResponseRedirect(reverse('login'))
+    else:
+        form = UserForm()
+    template = loader.get_template('registration/createUser.html')
+    context = {
+        'form': form,
+    }
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def home(request):
