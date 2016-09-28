@@ -1,1 +1,1 @@
-web: gunicorn sharejarapp.wsgi --log-file -
+web: gunicorn sharejarsite.wsgi --log-file -
