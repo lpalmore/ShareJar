@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^$', views.home, name='home'),
@@ -9,6 +11,4 @@ urlpatterns = [
     url(r'^addBalance', views.addBalance, name='addBalance'),
     url(r'^currentBalance', views.currentBalance, name='currentBalance'),
     url(r'^createUser', views.createUser, name='createUser'),
-]
-# For finding static files during development
-urlpatterns += staticfiles_urlpatterns()
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

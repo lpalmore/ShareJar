@@ -1,6 +1,4 @@
-<head>
-<link rel="stylesheet" type="text/css" href="static/styles.css">
-</head>
+{% load static %}
 
 <title>
 {% block title %} Share Jar {% endblock %}
@@ -8,13 +6,13 @@
 
 {% block navbar %}
 <style>
-    li b{ 
+    li b{
         display: block;
         color: white;
         padding: 14px 16px;
         text-decoration: none;
         float: left;
-    
+
     }
     li a {
         display: block;
@@ -22,14 +20,14 @@
         padding: 14px 16px;
         text-decoration: none;
         float: right;
-    } 
+    }
     ul {
        list-style-type: none;
        margin: 0;
        padding: 0;
        overflow: hidden;
        background-color: #090908;
-    }    
+    }
 
 </style>
 <ul>
@@ -43,4 +41,3 @@
 
 {% block content%}
 {% endblock %}
-

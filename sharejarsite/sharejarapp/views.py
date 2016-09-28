@@ -12,9 +12,14 @@ def createUser(request):
     #if post request, create the new user
     if request.method == "POST":
         form = UserForm(request.POST)
+        print form.is_valid()
         if form.is_valid():
-            newUser = User.objects.create_user(**form.cleaned_data)
-            return HttpResponseRedirect(reverse('login'))
+            user = form.cleaned_data['username']
+            print user;
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            newUser = User.objects.create_user(user, email, password)
+            return HttpResponseRedirect('login')
     else:
         form = UserForm()
     template = loader.get_template('registration/createUser.html')
