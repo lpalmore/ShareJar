@@ -3,7 +3,9 @@
 {% block title %} Add Balance {% endblock %}
 
 {% block content %}
-<div class="center">
+<style>
+div {  text-align: center }
+</style>
 <div class="header-text">
 Add a balance!<br><br>
 </div>
@@ -20,7 +22,8 @@ Add a balance!<br><br>
       Enter amount<br>
       <input class="styled-input" type="number" name="amount" min="1">
       <br><br>
-      <input class="styled-submit" type="submit">
+      <input type="submit" name="submit">
+      </div>
    </form>
 {% else %}
  You have no charities to donate to!

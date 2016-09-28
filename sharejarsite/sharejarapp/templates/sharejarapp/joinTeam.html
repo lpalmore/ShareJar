@@ -1,4 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
-join team
+<div class="header-text">
+Join a Team<br><br>
+</div>
+
+{% if teams %}
+<div class="styled-select styled-input">
+   <form>
+      Select an Existing Team<br>
+      <select name="team" class="styled-select">
+         {% for team in teams %}
+            <option value="{{team}}">{{team}}</option>
+         {% endfor %}
+      </select>
+      <br><br>
+
+      <input type="submit" name="submit"> <br>
+      <input type="submit" name="create-new-team" value="Create New Team">
+      </div>
+   </form>
+{% else %}
+ No teams available to join
+{% endif %}
 {% endblock %}
