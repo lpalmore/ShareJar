@@ -57,7 +57,7 @@ ROOT_URLCONF = 'sharejarsite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['sharejarsite/sharejarapp/templates'],
+        'DIRS': ['sharejarapp/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
