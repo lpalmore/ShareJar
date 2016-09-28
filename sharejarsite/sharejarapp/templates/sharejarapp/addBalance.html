@@ -3,6 +3,9 @@
 {% block title %} Add Balance {% endblock %}
 
 {% block content %}
+<style>
+div {  text-align: center }
+</style>
 <div class="header-text">
 Add a balance!<br><br>
 </div>
@@ -20,7 +23,7 @@ Add a balance!<br><br>
       Enter amount<br>
       <input type="number" name="amount" min="1">
       <br><br>
-      <input type="submit">
+      <input type="submit" name="submit">
       </div>
    </form>
 {% else %}

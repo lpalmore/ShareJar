@@ -1,4 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-<p>Hi. Here's the team stats</p>
+
+<style>
+.stats-text {
+   color: #a6a6a6;
+   font-size: 2vw;
+}
+</style>
+
+<div class="header-text">
+Team Balances<br><br>
+</div>
+
+<div class="stats-text" />
+{% if usertotal %}
+   Your Year-to-Date Total: {{usertotal}}<br>
+{% endif %}
+
+{% if teams %}
+   {% for team in teams %}
+      {{team.0}}: ${{team.1}} <br>    
+   {% endfor %}
+</div>
+{% else %}
+No teams to display stats for
+{% endif %}
+
 {% endblock %}
