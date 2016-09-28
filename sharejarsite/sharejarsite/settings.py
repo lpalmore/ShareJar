@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 
 LOGIN_URL = 'login/' # url for login
-
+LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
