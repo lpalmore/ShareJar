@@ -1,4 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-current balance
+<div class="header-text">
+Current Balances<br><br>
+</div>
+
+<style>
+.stats-text {
+   color: #a6a6a6;
+   font-size: 1vw;
+}
+
+.button {
+    height: 9px;
+    padding: 8px;
+    margin-bottom: 15px;
+    background: #fafafa;
+    color: #626262;
+    border: 1px solid #cccccc;
+    border-radius: 2px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    line-height: normal;
+}
+
+</style>
+
+<div class="stats-text">
+{% if balances %}
+	{% for balance in balances %}
+		{{balance.0}}:	${{balance.1}}
+		<!-- Later, this will link to the 'makepayment' page with arguments to speicify which charity to make the payment to -->
+		<a href="{% url 'joinTeam' %}" class="button">MAKE PAYMENT</a><br><br>
+	{%  endfor %}
+
+{% else %}
+No balances to display
+{% endif %}
+</div>
+
 {% endblock %}
