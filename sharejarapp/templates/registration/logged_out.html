@@ -2,5 +2,11 @@
 {% block content %}
 
 <p>You have successfully logged out</p>
+<form method="get" action="{% url 'login' %}">
+{% csrf_token %}
+</p>
+    <input class="btn btn-success btn-sm" type="submit" value="login" />
+</p>
+</form>
 
 {% endblock %}
