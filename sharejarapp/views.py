@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from forms import UserForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
+from models import Balances
 
 
 def createUser(request):
@@ -19,6 +20,10 @@ def createUser(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             newUser = User.objects.create_user(user, email, password)
+            #add balance of zero for new user
+            balance = Balances(user=newUser, balance=0)
+            balance.save()
+            print balance
             return HttpResponseRedirect('login')
     else:
         form = UserForm()
@@ -44,15 +49,38 @@ def teamStats(request):
 
 @login_required
 def addBalance(request):
+    #get input
+    increment = 1
+    #get user
+    current_user = request.user
+
+    #FIXLATER update balance for that user
+    b = Balances.objects.get(user=current_user)
+    b.balance += increment
+    b.save()
+    #if balance update is successful
+    success = True
+    balance = b.balance
+
     template = loader.get_template('sharejarapp/addBalance.html')
     context = {
+        'success': success
+        'balance': balance
     }
     return HttpResponse(template.render(context, request))
 
 @login_required
 def currentBalance(request):
+    #get user from db
+    user = "hello"
+    #FIXLATER return actual username
+    #get balance for user
+    balance = 6
+    #FIXLATER RETURN actual balance
+    #pass template to browser
     template = loader.get_template('sharejarapp/currentBalance.html')
     context = {
+        'balance': balance
     }
     return HttpResponse(template.render(context, request))
 

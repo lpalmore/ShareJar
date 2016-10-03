@@ -27,16 +27,8 @@ Current Balances<br><br>
 </style>
 
 <div class="stats-text">
-{% if balances %}
-	{% for balance in balances %}
-		{{balance.0}}:	${{balance.1}}
-		<!-- Later, this will link to the 'makepayment' page with arguments to speicify which charity to make the payment to -->
-		<a href="{% url 'joinTeam' %}" class="button">MAKE PAYMENT</a><br><br>
-	{%  endfor %}
-
-{% else %}
-No balances to display
+{% if balance %}
+    <p>{{balance}}</p>
 {% endif %}
 </div>
-
 {% endblock %}
