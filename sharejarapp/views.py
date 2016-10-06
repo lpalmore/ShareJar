@@ -64,7 +64,7 @@ def addBalance(request):
 
     template = loader.get_template('sharejarapp/addBalance.html')
     context = {
-        'success': success
+        'success': success,
         'balance': balance
     }
     return HttpResponse(template.render(context, request))
