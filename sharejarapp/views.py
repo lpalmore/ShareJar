@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from forms import UserForm
+from forms import UserForm, AddBalanceForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances
@@ -49,34 +49,43 @@ def teamStats(request):
 
 @login_required
 def addBalance(request):
-    #get input
-    increment = 1
-    #get user
     current_user = request.user
-
-    #FIXLATER update balance for that user
+    message = ""
+    #if post request, add increment
+    if request.method == 'POST':
+        form = AddBalanceForm(request.POST)
+        if form.is_valid():
+            increment = form.cleaned_data['increment']
+            #get user
+            #update balance for that user
+            if increment >= 0:
+                b = Balances.objects.get(user=current_user)
+                b.balance += increment
+                b.save()
+                message = str(increment) + " has been added!"
+            #balance added
+            else:
+                message = "Please enter a positive value"
     b = Balances.objects.get(user=current_user)
-    b.balance += increment
-    b.save()
-    #if balance update is successful
-    success = True
     balance = b.balance
-
+    #create form for adding balance
+    form = AddBalanceForm()
     template = loader.get_template('sharejarapp/addBalance.html')
     context = {
-        'success': success
-        'balance': balance
+        'balance': balance,
+        'form': form,
+        'message': message,
     }
     return HttpResponse(template.render(context, request))
 
 @login_required
 def currentBalance(request):
     #get user from db
-    user = "hello"
-    #FIXLATER return actual username
+    # return actual username
     #get balance for user
-    balance = 6
-    #FIXLATER RETURN actual balance
+    current_user = request.user
+    b = Balances.objects.get(user=current_user)
+    balance = b.balance
     #pass template to browser
     template = loader.get_template('sharejarapp/currentBalance.html')
     context = {

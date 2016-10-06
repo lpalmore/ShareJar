@@ -9,24 +9,17 @@ div {  text-align: center }
 <div class="header-text">
 Add a balance!<br><br>
 </div>
-{% if charities %}
-   <form>
-      Select a Charity<br>
-      <select class="styled-select" name="charity" class="styled-select">
-         {% for charity in charities %}
-            <option value="{{charity}}">{{charity}}</option>
-         {% endfor %}
-      </select>
-      <br><br>
-
-      Enter amount<br>
-      <input class="styled-input" type="number" name="amount" min="1">
-      <br><br>
-      <input type="submit" name="submit">
-      </div>
-   </form>
-{% else %}
- You have no charities to donate to!
+<div>
+   {{ message }}
+</div>
+<form action="addBalance" method="POST">
+   {% csrf_token %}
+   {{ form }}
+</form>
+</div>
+<div class="stats-text">
+{% if balance %}
+    <p>{{balance}}</p>
 {% endif %}
- </div>
+</div>
 {% endblock %}

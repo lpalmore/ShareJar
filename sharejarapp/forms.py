@@ -9,3 +9,5 @@ class UserForm(ModelForm):
         fields = ('username', 'email', 'password')
         
 #FIXLATER: create add balance increment form
+class AddBalanceForm(forms.Form):
+	increment = forms.DecimalField(max_digits=5, decimal_places=2)

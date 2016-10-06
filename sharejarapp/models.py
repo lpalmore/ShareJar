@@ -7,4 +7,5 @@ from django.conf import settings
 class Balances(models.Model):
 	#username_text = models.CharField(max_length=20, primary_key=True) #FIXLATER add check to make sure username under 20 characters
 	user = models.ForeignKey(settings.AUTH_USER_MODEL)
-	balance = models.DecimalField(max_digits=3, decimal_places=2, default = 0)
+	#balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
+	balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
