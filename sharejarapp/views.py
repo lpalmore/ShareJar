@@ -88,8 +88,9 @@ def currentBalance(request):
     balance = b.balance
     #pass template to browser
     template = loader.get_template('sharejarapp/currentBalance.html')
+    #Example context for this template
     context = {
-        'balance': balance
+        'balances': [('charityname1', 20), ('charityname2', 12)]
     }
     return HttpResponse(template.render(context, request))
 
