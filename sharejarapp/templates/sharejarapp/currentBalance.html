@@ -7,7 +7,7 @@ Current Balances<br><br>
 <style>
 .stats-text {
    color: #a6a6a6;
-   font-size: 5vw;
+   font-size: 1vw;
 }
 
 .button {
@@ -28,11 +28,13 @@ Current Balances<br><br>
 
 <div class="stats-text">
 {% if balances %}
+
 	{% for balance in balances %}
-		{{balance.0}}:	${{balance.1}}
-		<!-- Later, this will link to the 'makepayment' page with arguments to speicify which charity to make the payment to -->
-		<a href="{% url 'joinTeam' %}" class="button">MAKE PAYMENT</a><br><br>
+     {{balance.0}}:	${{balance.1}}
+     <a href="{% url 'makePayment' balance.0 %}" class="button">Make Payment</a>
+     <br><br>
 	{%  endfor %}
+
 
 {% else %}
 No balances to display

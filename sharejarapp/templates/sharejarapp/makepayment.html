@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="header-text">
+  Make a payment to {{charity}}<br><br>
+</div>
+
+Please enter the amount you would like to pay<br>
+<form action={% url 'makePayment' charity %} method="post">
+  {% csrf_token %}
+  {{paymentForm}}
+  <input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

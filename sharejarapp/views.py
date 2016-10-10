@@ -8,6 +8,12 @@ from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances
 
+from .forms import MakePaymentForm
+from paypalrestsdk import Payment
+from paypal import createPayment
+from django.shortcuts import redirect
+
+
 
 def createUser(request):
     #if post request, create the new user
@@ -99,4 +105,28 @@ def joinTeam(request):
     template = loader.get_template('sharejarapp/joinTeam.html')
     context = {
     }
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def makePayment(request, charity):
+    # TODO Actually pull the balance from the model
+    if request.method == 'POST':
+        form = MakePaymentForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            # TODO Get the current user's paypal email instead of using
+            # hardcoded value
+            redirectURL = createPayment("sharejardev-facilitator@gmail.com",
+                                               amount, charity)
+            if redirectURL:
+                return redirect(redirectURL)
+            else:
+                # Paypal screwed up. Notify the user
+                pass
+        else:
+            # Form data isn't valid. Notify the user
+            pass
+    else:
+        template = loader.get_template('sharejarapp/makePayment.html')
+        context = {"charity": charity, "paymentForm":MakePaymentForm()}
     return HttpResponse(template.render(context, request))
