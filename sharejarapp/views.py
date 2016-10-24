@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 from forms import UserForm, AddBalanceForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
-from models import Balances
+from models import Balances, Member, Charity
+from django.core.exceptions import ObjectDoesNotExist
 
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
@@ -26,13 +27,19 @@ def createUser(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             newUser = User.objects.create_user(user, email, password)
-            #add balance of zero for new user
-            balance = Balances(user=newUser, balance=0)
-            balance.save()
-            print balance
+            # Create derived member
+            member = Member(user=newUser,
+                            paypal_email=form.cleaned_data['paypalEmail'])
+            member.save()
+            print "Success "
             return HttpResponseRedirect('login')
+            #add balance of zero for new user
+            #balance = Balances(user=newUser, balance=0)
+            #balance.save()
+            #print balance
     else:
         form = UserForm()
+        print "Error"
     template = loader.get_template('registration/createUser.html')
     context = {
         'form': form,
@@ -59,45 +66,55 @@ def addBalance(request):
     message = ""
     #if post request, add increment
     if request.method == 'POST':
+        member = Member.objects.get(user=current_user)
         form = AddBalanceForm(request.POST)
         if form.is_valid():
             increment = form.cleaned_data['increment']
+            charityname= form.cleaned_data['charity']
             #get user
             #update balance for that user
             if increment >= 0:
-                b = Balances.objects.get(user=current_user)
-                b.balance += increment
-                b.save()
+                b = None
+                try:
+                    b = Balances.objects.get(member=member, charity=charityname)
+                    b.balance += increment
+                    b.save()
+                except ObjectDoesNotExist:
+                    b = Balances.objects.create(member=member, charity=charityname, balance=increment)
                 message = str(increment) + " has been added!"
             #balance added
             else:
                 message = "Please enter a positive value"
-    b = Balances.objects.get(user=current_user)
-    balance = b.balance
+
     #create form for adding balance
     form = AddBalanceForm()
     template = loader.get_template('sharejarapp/addBalance.html')
     context = {
-        'balance': balance,
-        'form': form,
-        'message': message,
-    }
+        'form': form
+        }
+
     return HttpResponse(template.render(context, request))
 
 @login_required
 def currentBalance(request):
+    
     #get user from db
     # return actual username
     #get balance for user
     current_user = request.user
-    b = Balances.objects.get(user=current_user)
-    balance = b.balance
+    member = Member.objects.get(user=current_user)
+    b = None
+    try:
+        b = Balances.objects.all().filter(member=member)
+    except ObjectDoesNotExist:
+        pass
+    #balance = b.balance
     #pass template to browser
-    template = loader.get_template('sharejarapp/currentBalance.html')
     #Example context for this template
     context = {
-        'balances': [('charityname1', 20), ('charityname2', 12)]
+        'balances': b
     }
+    template = loader.get_template('sharejarapp/currentBalance.html')
     return HttpResponse(template.render(context, request))
 
 @login_required
@@ -113,15 +130,15 @@ def makePayment(request, charity):
     if request.method == 'POST':
         form = MakePaymentForm(request.POST)
         if form.is_valid():
+            current_user = request.user
+            memberEmail = Member.objects.get(user=current_user).paypal_email
+            charityEmail = Charity.objects.get(charityname=charity).paypal_email
             amount = form.cleaned_data['amount']
-            # TODO Get the current user's paypal email instead of using
-            # hardcoded value
-            redirectURL = createPayment("sharejardev-facilitator@gmail.com",
-                                               amount, charity)
+            redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
             if redirectURL:
                 return redirect(redirectURL)
             else:
-                # Paypal screwed up. Notify the user
+                return redirect('/addBalance/')
                 pass
         else:
             # Form data isn't valid. Notify the user

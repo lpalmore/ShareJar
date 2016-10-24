@@ -30,8 +30,8 @@ Current Balances<br><br>
 {% if balances %}
 
 	{% for balance in balances %}
-     {{balance.0}}:	${{balance.1}}
-     <a href="{% url 'makePayment' balance.0 %}" class="button">Make Payment</a>
+     {{balance.charity}}:	${{balance.balance}}
+     <a href="{% url 'makePayment' balance.charity %}" class="button">Make Payment</a>
      <br><br>
 	{%  endfor %}
 
