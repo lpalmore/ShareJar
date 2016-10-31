@@ -29,7 +29,7 @@ def initPayment(userEmail, amount, charityName, charityEmail):
 
         # Redirect URLs: TODO: These can't stay localhost forever
         "redirect_urls": {
-            "return_url": 'http://localhost:8000/currentBalance',#"http://localhost:3000/payment/execute",
+            "return_url": 'http://localhost:8000/confirmPayment',#"http://localhost:3000/payment/execute",
             "cancel_url": 'http://localhost:8000/makePayment/%s'%(charityName)},#"http://localhost:3000/"},
 
         # Transaction
@@ -43,7 +43,7 @@ def initPayment(userEmail, amount, charityName, charityEmail):
             # ItemList
             "item_list": {
                 "items": [{
-                    "name": "item",
+                    "name": "Halloween Item 2",
                     "sku": "item",
                     "price": amount,
                     "currency": "USD",
@@ -75,3 +75,12 @@ def createPayment(userEmail, amount, charityName, charityEmail):
         print("Error while creating payment:")
         print(payment.error)
         return None
+
+def executePayment(payerID, paymentID, current_user):
+    payment = Payment.find(paymentID);
+    success = payment.execute({"payer_id": payerID})
+    if success:
+        print "Successfully executed payment"
+    else:
+        print (payment.error)
+    return success

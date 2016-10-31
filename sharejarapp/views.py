@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
-from paypal import createPayment
+from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 
 
@@ -146,4 +146,16 @@ def makePayment(request, charity):
     else:
         template = loader.get_template('sharejarapp/makePayment.html')
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
+    return HttpResponse(template.render(context, request))
+
+def confirmPayment(request, charity):
+    payerID = request.GET.get('PayerID', '')
+    paymentID = request.GET.get('paymentId', '')
+    print 'payerID: ' + payerID
+    print 'paymentID: ' + paymentID
+    current_user = request.user
+    success = executePayment(payerID, paymentID, Member.objects.get(user=current_user))
+    template = loader.get_template('sharejarapp/confirmPayment.html')
+    context = {
+    }
     return HttpResponse(template.render(context, request))
