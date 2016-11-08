@@ -20,3 +20,8 @@ class AddBalanceForm(forms.Form):
 
 class MakePaymentForm(forms.Form):
     amount = forms.IntegerField(max_value=100, min_value=1)
+
+#class AddCharityForm(forms.Form):
+#    charityname = forms.CharField(max_length=80, unique=True, default="DefaultCharityName", label='Charity Name')
+#    description = forms.CharField(max_length=150, label="Description")
+#    paypal_email = forms.EmailField(label="Charity Email")

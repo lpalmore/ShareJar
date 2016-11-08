@@ -4,6 +4,7 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from forms import UserForm, AddBalanceForm
+#from forms import UserForm, AddBalanceForm, AddCharityForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity
@@ -94,6 +95,35 @@ def addBalance(request):
         }
 
     return HttpResponse(template.render(context, request))
+
+# #no corresponding page for this...
+# @login_required
+# def addCharity(request):
+#     current_user = request.user
+#     message = ""
+#     #if post request, add charity
+#     if request.method == 'POST':
+#         member = Member.objects.get(user=current_user)
+#         form = AddCharityForm(request.POST)
+#         if form.is_valid():
+#             charityname= form.cleaned_data['charity']
+#             description = form.cleaned_data['description']
+#             paypal_email = form.cleaned_data['email']
+#             Charity.objects.create(charity=charityname, description=description, paypal_email=paypal_email)
+#             message = str(charityname) + " charity has been added!"
+#             #charity added
+#             #else:
+#             #message = "Please enter a charity that has not already been added"
+
+#     #create form for adding balance
+#     form = AddCharityForm()
+#     #probably need to add /addCharity.html page?
+#     template = loader.get_template('sharejarapp/addCharity.html')
+#     context = {
+#         'form': form
+#         }
+
+#     return HttpResponse(template.render(context, request))
 
 @login_required
 def currentBalance(request):
