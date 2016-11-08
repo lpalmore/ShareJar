@@ -12,7 +12,7 @@ paypalrestsdk.configure({
 
 logging.basicConfig(level=logging.INFO)
 
-def initPayment(userEmail, amount, charity):
+def initPayment(userEmail, amount, charityName, charityEmail):
     # Payment
     # A Payment Resource; create one using
     # the above types and intent as 'sale'
@@ -27,10 +27,10 @@ def initPayment(userEmail, amount, charity):
                 "email": userEmail#"sharejardev-facilitator@gmail.com"
         }   },
 
-        # Redirect URLs
+        # Redirect URLs: TODO: These can't stay localhost forever
         "redirect_urls": {
             "return_url": 'http://localhost:8000/currentBalance',#"http://localhost:3000/payment/execute",
-            "cancel_url": 'http://localhost:8000/makePayment/%s'%(charity)},#"http://localhost:3000/"},
+            "cancel_url": 'http://localhost:8000/makePayment/%s'%(charityName)},#"http://localhost:3000/"},
 
         # Transaction
         # A transaction defines the contract of a
@@ -38,7 +38,7 @@ def initPayment(userEmail, amount, charity):
         # is fulfilling it.
         "transactions": [{
             "payee": {
-                "email": "sharejardev-buyer@gmail.com"
+                "email": charityEmail
             },
             # ItemList
             "item_list": {
@@ -58,9 +58,9 @@ def initPayment(userEmail, amount, charity):
     return payment
 
 
-def createPayment(userEmail, amount, charity):
+def createPayment(userEmail, amount, charityName, charityEmail):
     # Create Payment and return status
-    payment = initPayment(userEmail, amount, charity)
+    payment = initPayment(userEmail, amount, charityName, charityEmail)
     if payment.create():
         print("Payment[%s] created successfully" % (payment.id))
         # Redirect the user to given approval url
