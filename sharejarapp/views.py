@@ -115,7 +115,7 @@ def addBalance(request):
 #             #else:
 #             #message = "Please enter a charity that has not already been added"
 
-#     #create form for adding balance
+#     #create form for adding charity
 #     form = AddCharityForm()
 #     #probably need to add /addCharity.html page?
 #     template = loader.get_template('sharejarapp/addCharity.html')
