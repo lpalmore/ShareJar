@@ -3,6 +3,9 @@
 # PayPal Account based Payment.
 # API used: /v1/payments/payment
 from paypalrestsdk import Payment
+from django.core.exceptions import ObjectDoesNotExist
+from models import Balances, Member, Charity
+from decimal import Decimal
 import logging
 import paypalrestsdk
 paypalrestsdk.configure({
@@ -43,7 +46,7 @@ def initPayment(userEmail, amount, charityName, charityEmail):
             # ItemList
             "item_list": {
                 "items": [{
-                    "name": "Halloween Item 2",
+                    "name": "11/11 Item",
                     "sku": "item",
                     "price": amount,
                     "currency": "USD",
@@ -76,11 +79,23 @@ def createPayment(userEmail, amount, charityName, charityEmail):
         print(payment.error)
         return None
 
-def executePayment(payerID, paymentID, current_user):
+def executePayment(payerID, paymentID, member):
     payment = Payment.find(paymentID);
     success = payment.execute({"payer_id": payerID})
     if success:
         print "Successfully executed payment"
     else:
         print (payment.error)
+    try:
+        charity = Charity.objects.all().filter(paypal_email=payment.transactions[0].payee.email)
+    except ObjectDoesNotExist:
+        pass
+    try:
+        balances = Balances.objects.all().filter(member=member, charity=charity)
+    except ObjectDoesNotExist:
+        pass
+    b = balances.first()
+    total = Decimal(payment.transactions[0].amount.total)
+    b.balance -= total
+    b.save()
     return success

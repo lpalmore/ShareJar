@@ -178,14 +178,16 @@ def makePayment(request, charity):
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
     return HttpResponse(template.render(context, request))
 
-def confirmPayment(request, charity):
+def confirmPayment(request, etc):
     payerID = request.GET.get('PayerID', '')
     paymentID = request.GET.get('paymentId', '')
     print 'payerID: ' + payerID
     print 'paymentID: ' + paymentID
     current_user = request.user
-    success = executePayment(payerID, paymentID, Member.objects.get(user=current_user))
+    member = Member.objects.get(user=current_user)
+    success = executePayment(payerID, paymentID, member)
     template = loader.get_template('sharejarapp/confirmPayment.html')
     context = {
+        'success': success
     }
     return HttpResponse(template.render(context, request))
