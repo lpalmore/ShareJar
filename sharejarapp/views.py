@@ -116,8 +116,8 @@ def addCharity(request):
             #message = "Please enter a charity that has not already been added"
 
     #create form for adding charity
+    #not letting me do this
     form = AddCharityForm()
-    #probably need to add /addCharity.html page?
     template = loader.get_template('sharejarapp/addCharity.html')
     context = {
         'form': form
