@@ -96,34 +96,34 @@ def addBalance(request):
 
     return HttpResponse(template.render(context, request))
 
-# #no corresponding page for this...
-# @login_required
-# def addCharity(request):
-#     current_user = request.user
-#     message = ""
-#     #if post request, add charity
-#     if request.method == 'POST':
-#         member = Member.objects.get(user=current_user)
-#         form = AddCharityForm(request.POST)
-#         if form.is_valid():
-#             charityname= form.cleaned_data['charity']
-#             description = form.cleaned_data['description']
-#             paypal_email = form.cleaned_data['email']
-#             Charity.objects.create(charity=charityname, description=description, paypal_email=paypal_email)
-#             message = str(charityname) + " charity has been added!"
-#             #charity added
-#             #else:
-#             #message = "Please enter a charity that has not already been added"
+#no corresponding page for this...
+@login_required
+def addCharity(request):
+    current_user = request.user
+    message = ""
+    #if post request, add charity
+    if request.method == 'POST':
+        member = Member.objects.get(user=current_user)
+        form = AddCharityForm(request.POST)
+        if form.is_valid():
+            charityname= form.cleaned_data['charity']
+            description = form.cleaned_data['description']
+            paypal_email = form.cleaned_data['email']
+            Charity.objects.create(charity=charityname, description=description, paypal_email=paypal_email)
+            message = str(charityname) + " charity has been added!"
+            #charity added
+            #else:
+            #message = "Please enter a charity that has not already been added"
 
-#     #create form for adding charity
-#     form = AddCharityForm()
-#     #probably need to add /addCharity.html page?
-#     template = loader.get_template('sharejarapp/addCharity.html')
-#     context = {
-#         'form': form
-#         }
+    #create form for adding charity
+    form = AddCharityForm()
+    #probably need to add /addCharity.html page?
+    template = loader.get_template('sharejarapp/addCharity.html')
+    context = {
+        'form': form
+        }
 
-#     return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def currentBalance(request):

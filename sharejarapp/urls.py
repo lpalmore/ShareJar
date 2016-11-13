@@ -10,5 +10,6 @@ urlpatterns = [
     url(r'^addBalance', views.addBalance, name='addBalance'),
     url(r'^currentBalance', views.currentBalance, name='currentBalance'),
     url(r'^createUser', views.createUser, name='createUser'),
+    url(r'^addCharity', views.addCharity, name='addCharity'),
     url(r'^makePayment/([a-z | A-Z | 0-9]+)', views.makePayment, name='makePayment'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

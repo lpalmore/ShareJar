@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %} Add Charity {% endblock %}
+
+{% block content %}
+<style>
+div {  text-align: center }
+</style>
+<div class="header-text">
+Add a charity!<br><br>
+</div>
+<div>
+   {{ message }}
+</div>
+<form action="addBalance" method="POST">
+   {% csrf_token %}
+   {{ form }}
+</form>
+</div>
+<div class="stats-text">
+{% if balance %}
+    <p>{{balance}}</p>
+{% endif %}
+</div>
+{% endblock %}
