@@ -3,8 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm
-#from forms import UserForm, AddBalanceForm, AddCharityForm
+from forms import UserForm, AddBalanceForm, AddCharityForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity
