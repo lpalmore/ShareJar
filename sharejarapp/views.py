@@ -174,7 +174,7 @@ def makePayment(request, charity):
             # Form data isn't valid. Notify the user
             pass
     else:
-        template = loader.get_template('sharejarapp/makePayment.html')
+        template = loader.get_template('sharejarapp/makepayment.html')
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
     return HttpResponse(template.render(context, request))
 
