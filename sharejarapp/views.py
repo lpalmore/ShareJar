@@ -105,10 +105,12 @@ def addCharity(request):
         member = Member.objects.get(user=current_user)
         form = AddCharityForm(request.POST)
         if form.is_valid():
-            charityname= form.cleaned_data['charity']
+            print form.cleaned_data
+            charityname= form.cleaned_data['charityname']
+            print charityname
             description = form.cleaned_data['description']
-            paypal_email = form.cleaned_data['email']
-            Charity.objects.create(charity=charityname, description=description, paypal_email=paypal_email)
+            paypal_email = form.cleaned_data['paypal_email']
+            Charity.objects.create(charityname=charityname, description=description, paypal_email=paypal_email)
             message = str(charityname) + " charity has been added!"
             #charity added
             #else:
@@ -126,7 +128,7 @@ def addCharity(request):
 
 @login_required
 def currentBalance(request):
-    
+
     #get user from db
     # return actual username
     #get balance for user
