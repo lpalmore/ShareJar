@@ -35,9 +35,11 @@
           <form class="form-vertical" method="post" action="{% url 'login' %}">
               {% csrf_token %}
               <p class="form-login">
-                {% if form.errors %}
+                {% if form.non_field_errors %}
                   <div class="alert alert-danger">
-                    <p>Incorrect Password</p>
+                    {% for error in form.non_field_errors %}
+                      <p>{{ error }}</p>
+                    {% endfor %}
                   </div>
                 {% endif %}
                 <div class="form-group">
@@ -52,6 +54,8 @@
               <input class="btn btn-default" type="submit" value="Login" />
               <input type="hidden" name="next" value="{{ next }}" />
           </form>
+          <br>
+          <a href="{% url 'password_reset' %}">Forgot Username/Password?</a>
         </div>
     </div>
 
