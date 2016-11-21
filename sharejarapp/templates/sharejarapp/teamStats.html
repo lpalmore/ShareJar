@@ -1,15 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 
-<style>
-.stats-text {
-   color: #a6a6a6;
-   font-size: 2vw;
-}
-</style>
-
-<div class="header-text">
-Team Balances<br><br>
+<div class="page-header">
+  <h3>Team Balances</h3>
 </div>
 
 <div class="stats-text" />
@@ -19,7 +12,7 @@ Team Balances<br><br>
 
 {% if teams %}
    {% for team in teams %}
-      {{team.0}}: ${{team.1}} <br>    
+      {{team.0}}: ${{team.1}} <br>
    {% endfor %}
 
 {% else %}

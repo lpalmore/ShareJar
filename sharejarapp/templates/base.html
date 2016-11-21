@@ -1,45 +1,51 @@
-<head>
-<link rel="stylesheet" type="text/css" href="static/styles.css">
-</head>
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Share Jar</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "bootstrap.min.css" %}">
+    <script src="{% static "jquery.min.js" %}"></script>
+    <script src="{% static "bootstrap.min.js" %}"></script>
+  </head>
+
+<body>
 <title>
 {% block title %} Share Jar {% endblock %}
 </title>
 
 {% block navbar %}
-<style>
-    li b{
-        display: block;
-        color: white;
-        padding: 14px 16px;
-        text-decoration: none;
-        float: left;
-
-    }
-    li a {
-        display: block;
-        color: white;
-        padding: 14px 16px;
-        text-decoration: none;
-        float: right;
-    }
-    ul {
-       list-style-type: none;
-       margin: 0;
-       padding: 0;
-       overflow: hidden;
-       background-color: #090908;
-    }
-
-</style>
-<ul>
-    <li> <b> Share Jar </b>
-    <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
-    <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
-    <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
-    <li>{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
-    <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
-</ul>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
+      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
+      <li>{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
+      <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
 {% endblock %}
-
+<div class="container">
 {% block content%}
+</div>
 {% endblock %}
+
+</body>
+</html>
+
+<script>
+$(".nav a").on("click", function(){
+   $(".nav").find(".active").removeClass("active");
+   $(this).parent().addClass("active");
+});
+</script>

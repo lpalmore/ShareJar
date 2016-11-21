@@ -1,44 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="header-text">
-Current Balances<br><br>
+<div class="page-header">
+  <h3>Current Balances</h3>
 </div>
-
-<style>
-.stats-text {
-   color: #a6a6a6;
-   font-size: 1vw;
-}
-
-.button {
-    height: 9px;
-    padding: 8px;
-    margin-bottom: 15px;
-    background: #fafafa;
-    color: #626262;
-    border: 1px solid #cccccc;
-    border-radius: 2px;
-    font-family: 'Open Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 300;
-    line-height: normal;
-}
-
-</style>
-
-<div class="stats-text">
-{% if balances %}
-
-	{% for balance in balances %}
-     {{balance.charity}}:	${{balance.balance}}
-     <a href="{% url 'makePayment' balance.charity %}" class="button">Make Payment</a>
-     <br><br>
-	{%  endfor %}
-
-
-{% else %}
-No balances to display
-{% endif %}
+<div class="addCharity-panel panel panel-default">
+  <div class="panel-body">
+    <div class="stats-text">
+    {% if balances %}
+    	{% for balance in balances %}
+         <label for="balance">{{balance.charity}}:	${{balance.balance}}</label>
+         <a href="{% url 'makePayment' balance.charity %}" class="btn btn-default">Make Payment</a>
+    	{%  endfor %}
+    {% else %}
+        <label for="balance">No balances to display</label>
+    {% endif %}
+    </div>
+  </div>
 </div>
-
 {% endblock %}

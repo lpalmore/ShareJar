@@ -1,56 +1,66 @@
+{% load static %}
 
-{% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 col-md-offset-4">
-                <div class="login-panel panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Create an Account</h3>
-                    </div>
-                    <div class="panel-body">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Share Jar</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "bootstrap.min.css" %}">
+    <script src="{% static "jquery.min.js" %}"></script>
+    <script src="{% static "bootstrap.min.js" %}"></script>
+  </head>
 
-                        <form method="post" action="{% url 'createUser' %}">
-                            {% csrf_token %}
-                            <p class="bs-component">
-                                <table>
-                                    <tr>
-                                        <td>{{ form.username.label_tag }}</td>
-                                        <td>{{ form.username }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>{{ form.email.label_tag }}</td>
-                                        <td>{{ form.email }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>{{ form.password.label_tag }}</td>
-                                        <td>{{ form.password }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>{{ form.paypalEmail.label_tag }}</td>
-                                        <td>{{ form.paypalEmail }}</td>
-                                    </tr>
-                                </table>
-                            </p>
-                            <p class="bs-component">
-                                <center>
-                                    <input class="btn btn-success btn-sm" type="submit" value="Create User" />
-                                </center>
-                            </p>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body>
+  {% block navbar %}
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+      </div>
+      <ul class="nav navbar-nav">
+        <li><a href="{% url 'createUser' %}"><span class="glyphicon glyphicon-user"></span>Sign Up</a></li>
+      </ul>
     </div>
+  </nav>
+  {% endblock %}
+  <div class="container">
+    <div class="login-panel panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Create an Account</h3>
+      </div>
+      <div class="panel-body">
+        <form class="form-vertical" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <p class="form-login">
+              {% if form.errors %}
+                <div class="alert alert-danger">
+                  <p>Error</p>
+                </div>
+              {% endif %}
+              <div class="form-group">
+                {{ form.username.label_tag }}
+                {{form.username}}
+              </div>
+              <div class="form-group">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+              </div>
+              <div class="form-group">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+              </div>
+              <div class="form-group">
+                {{ form.paypalEmail.label_tag }}
+                {{ form.paypalEmail }}
+              </div>
+            </p>
+            <input class="btn btn-default" type="submit" value="Create Account" />
+            <input type="hidden" name="next" value="{{ next }}" />
+        </form>
+      </div>
+    </div>
+  </div>
 
-{% endblock %}
-
-{% block javascript %}
-
-<script>
-{% if not user.is_authenticated %}
-$("ul.nav.navbar-nav.navbar-right").css("display","none");
-{% endif %}
-</script>
-
-{% endblock %}
+</body>
+</html>

@@ -23,7 +23,6 @@ def createUser(request):
         print form.is_valid()
         if form.is_valid():
             user = form.cleaned_data['username']
-            print user;
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             newUser = User.objects.create_user(user, email, password)
@@ -31,7 +30,6 @@ def createUser(request):
             member = Member(user=newUser,
                             paypal_email=form.cleaned_data['paypalEmail'])
             member.save()
-            print "Success "
             return HttpResponseRedirect('login')
             #add balance of zero for new user
             #balance = Balances(user=newUser, balance=0)

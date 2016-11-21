@@ -1,12 +1,33 @@
+{% load static %}
 
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Share Jar</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "bootstrap.min.css" %}">
+    <script src="{% static "jquery.min.js" %}"></script>
+    <script src="{% static "bootstrap.min.js" %}"></script>
+  </head>
 
-<p>You have successfully logged out</p>
-<form method="get" action="{% url 'login' %}">
-{% csrf_token %}
-</p>
-    <input class="btn btn-success btn-sm" type="submit" value="login" />
-</p>
-</form>
+<body>
 
-{% endblock %}
+  {% block navbar %}
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+      </div>
+    </div>
+  </nav>
+  {% endblock %}
+  <div class="container">
+    <p>You have successfully logged out.</p>
+    <form method="get" action="{% url 'login' %}">{% csrf_token %}
+      </p>
+          <input class="btn btn-default" type="submit" value="Login" />
+      </p>
+    </form>
+  </div>
+</body>

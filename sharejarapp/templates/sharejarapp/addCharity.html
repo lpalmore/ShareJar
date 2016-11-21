@@ -3,20 +3,36 @@
 {% block title %} Add Charity {% endblock %}
 
 {% block content %}
-<style>
-div {  text-align: center }
-</style>
-<div class="header-text">
-Add a charity!<br><br>
+
+<div class="page-header">
+  <h3>Add a Charity</h3>
 </div>
-<div>
-   {{ message }}
-</div>
-<form action="addCharity" method="POST">
-   {% csrf_token %}
-   {{ form }}
-   <input class="btn btn-default" type="submit" value="submit" />
-</form>
+<div class="addCharity-panel panel panel-default">
+  <div class="panel-body">
+    <form action="addCharity" method="POST">{% csrf_token %}
+      <p class="form-addCharity">
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <p>Error</p>
+          </div>
+        {% endif %}
+        <div class="form-group">
+          {{ form.charityname.label_tag }}
+          {{form.charityname}}
+        </div>
+        <div class="form-group">
+          {{ form.description.label_tag }}
+          {{ form.description }}
+        </div>
+        <div class="form-group">
+          {{ form.paypal_email.label_tag }}
+          {{ form.paypal_email }}
+        </div>
+      </p>
+       <input class="btn btn-default" type="submit" value="submit" />
+    </form>
+  </div>
+
 </div>
 <div class="stats-text">
 {% if balance %}
