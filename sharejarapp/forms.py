@@ -25,3 +25,12 @@ class AddCharityForm(forms.Form):
    charityname = forms.CharField(max_length=80, label='Charity Name')
    description = forms.CharField(max_length=150, label="Description")
    paypal_email = forms.EmailField(label="Charity Email")
+
+class CreateTeamForm(forms.Form):
+    name = forms.CharField(max_length=80)
+
+class InviteTeamForm(forms.Form):
+    email = forms.EmailField()
+
+class JoinTeamForm(forms.Form):
+    code = forms.CharField(max_length=6, label="Invitation Code")
