@@ -32,8 +32,8 @@ def initPayment(userEmail, amount, charityName, charityEmail):
 
         # Redirect URLs: TODO: These can't stay localhost forever
         "redirect_urls": {
-            "return_url": 'https://sharejardev.herokuapp.com/confirmPayment',#"http://localhost:3000/payment/execute",
-            "cancel_url": 'https://sharejardev.herokuapp.com/makePayment/%s'%(charityName)},#"http://localhost:3000/"},
+            "return_url": 'http://localhost:8000/confirmPayment',#"http://localhost:3000/payment/execute",
+            "cancel_url": 'http://localhost:8000/makePayment/%s'%(charityName)},#"http://localhost:3000/"},
 
         # Transaction
         # A transaction defines the contract of a
