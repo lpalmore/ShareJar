@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+import uuid
 
 class Charity(models.Model):
 	charityname = models.CharField(max_length=80, unique=True, default="DefaultCharityName")
@@ -36,10 +37,19 @@ class Log(models.Model):
 	                          choices=ADMIN_ACTIONS_CHOICES,
 							  default=ADDED)
 
+class Team(models.Model):
+	name = models.CharField(max_length=80, unique=True, default='Unknown')
+	def __unicode__(self):
+		return u'{0}'.format(self.name)
+
 
 class Member(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL)
 	paypal_email = models.EmailField(null=False, blank=False)
+
+class TeamMemberList(models.Model):
+	team = models.ForeignKey(Team)
+	member = models.ForeignKey(Member)
 
 
 class Balances(models.Model):
@@ -50,3 +60,9 @@ class Balances(models.Model):
 	balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 	class Meta:
 		unique_together = (("member", "charity"))
+
+class Invite(models.Model):
+	email = models.EmailField()
+	# let Django auto generate this field with a length 6 uuid
+	code = models.CharField(max_length=6, unique=True)
+	team = models.ForeignKey(Team)

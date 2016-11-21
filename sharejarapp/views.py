@@ -3,16 +3,18 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm, AddCharityForm
+from forms import UserForm, AddBalanceForm, AddCharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
-from models import Balances, Member, Charity
+from models import Balances, Member, Charity, Team, TeamMemberList, Invite
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment
 from django.shortcuts import redirect
+from team_helpers import addMemberToTeam, generateCode
 
 
 
@@ -126,7 +128,7 @@ def addCharity(request):
 
 @login_required
 def currentBalance(request):
-    
+
     #get user from db
     # return actual username
     #get balance for user
@@ -149,8 +151,76 @@ def currentBalance(request):
 @login_required
 def joinTeam(request):
     template = loader.get_template('sharejarapp/joinTeam.html')
-    context = {
-    }
+    current_user = request.user
+    member = Member.objects.get(user=current_user)
+    currentTeam = None
+    currentTeamObject = None
+    try:
+        currentTeamObject = TeamMemberList.objects.get(member=member).team
+        currentTeam = currentTeamObject.name
+    except ObjectDoesNotExist:
+        pass
+    if request.method == 'POST':
+        #Determine which form was submitted
+        if 'create_team' in request.POST:
+            form = CreateTeamForm(request.POST)
+            if form.is_valid():
+                #Add team with this name to the DB
+                newTeamObject = Team.objects.create(name=form.cleaned_data['name'])
+                newTeamObject.save()
+                addMemberToTeam(member, newTeamObject, currentTeamObject)
+                currentTeam = newTeamObject.name
+            else:
+                print "Create Team Form Error!"
+        elif 'join_team' in request.POST:
+            form = JoinTeamForm(request.POST)
+            if form.is_valid():
+                code = form.cleaned_data['code']
+                try:
+                    inviteObject = Invite.objects.get(code=form.cleaned_data['code'])
+                    if current_user.email == inviteObject.email:
+                        #Add this user to the team
+                        newTeamObject = inviteObject.team
+                        addMemberToTeam(member, newTeamObject, currentTeamObject)
+                        inviteObject.delete()
+                        currentTeam = newTeamObject
+                    else:
+                        # Code does not match this user's email
+                        pass
+                except ObjectDoesNotExist:
+                    pass
+            else:
+                #form error
+                pass
+        elif 'invite_member' in request.POST:
+            # Generate code, associate code with email
+            form = InviteTeamForm(request.POST)
+            if form.is_valid():
+                email = form.cleaned_data['email']
+                inviteObject = Invite.objects.create(team=currentTeamObject, code=generateCode(), email=email)
+                #Send a notification and code to email provided
+            else:
+                pass
+        else:
+            pass #Error!
+    context = {'currentTeam': currentTeam}
+    #Does this member have an outstanding balance?
+    outstandingBalances = None
+    try:
+        outstandingBalances = Balances.objects.filter(member=member).aggregate(Sum('balance'))
+        outstandingBalances = outstandingBalances['balance__sum']
+    except ObjectDoesNotExist:
+        pass
+    if outstandingBalances == None or outstandingBalances == 0:
+        #This user may create or join a new team
+        context['createTeamForm'] = CreateTeamForm()
+        context['joinTeamForm'] = JoinTeamForm()
+    else:
+        print "You have outstanding balances!" + str(outstandingBalances)
+
+    if currentTeam:
+        #This user may invite new people to the team
+        context['inviteTeamForm'] = InviteTeamForm()
     return HttpResponse(template.render(context, request))
 
 @login_required
