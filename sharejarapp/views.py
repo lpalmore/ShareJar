@@ -28,18 +28,14 @@ def createUser(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             newUser = User.objects.create_user(user, email, password)
+            newUser.save() #so there will not be multiple users
             # Create derived member
             member = Member(user=newUser,
                             paypal_email=form.cleaned_data['paypalEmail'])
             member.save()
             return HttpResponseRedirect('login')
-            #add balance of zero for new user
-            #balance = Balances(user=newUser, balance=0)
-            #balance.save()
-            #print balance
     else:
         form = UserForm()
-        print "Error"
     template = loader.get_template('registration/createUser.html')
     context = {
         'form': form,

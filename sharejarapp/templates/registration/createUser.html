@@ -30,12 +30,23 @@
         <h3 class="panel-title">Create an Account</h3>
       </div>
       <div class="panel-body">
-        <form class="form-vertical" method="post" action="{% url 'login' %}">
+        <form class="form-vertical" method="post" action="{% url 'createUser' %}">
             {% csrf_token %}
             <p class="form-login">
               {% if form.errors %}
                 <div class="alert alert-danger">
-                  <p>Error</p>
+                  {% for error in form.username.errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                  {% for error in form.email.errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                  {% for error in form.paypalEmail.errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                  {% for error in form.password.errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
                 </div>
               {% endif %}
               <div class="form-group">

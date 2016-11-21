@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django import forms
 from django.forms import ModelForm
 from models import Member, Charity, Balances
+from django.core.exceptions import ValidationError
 
 class UserForm(ModelForm):
 
@@ -11,6 +12,11 @@ class UserForm(ModelForm):
     class Meta:
         model = User
         fields = ('username','email', 'password')
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("That Username is already taken")
+        return username
 
 #FIXLATER: create add balance increment form
 class AddBalanceForm(forms.Form):
