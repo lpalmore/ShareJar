@@ -1,12 +1,17 @@
+.nav navbar-nav navbar-right ul#sharejarnav > .active {
+  border-style: solid;
+  border-color: red;
+}
+
 .header-text {
    font-size: 28px;
    font-family:'ProximaNova';
-   
+
 }
 
 .center {text-align: center;}
 
-.styled-select{  
+.styled-select{
     height: 40px;
 	width: 300px;
     padding: 8px;
@@ -19,7 +24,7 @@
     font-weight: 300;
     line-height: normal;
    }
-   
+
 .styled-input {
     height: auto;
     padding: 8px;

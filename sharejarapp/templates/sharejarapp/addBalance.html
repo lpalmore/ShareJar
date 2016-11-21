@@ -4,6 +4,24 @@
 
 {% block content %}
 
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
+      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
+      <li class="active">{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
+      <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
 <div class="page-header">
   <h3>Add to Balance</h3>
 </div>
@@ -23,5 +41,6 @@
   </div>
 
 
+</div>
 </div>
 {% endblock %}
