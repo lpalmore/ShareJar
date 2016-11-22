@@ -12,11 +12,16 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
-EMAIL_HOST_USER = os.environ['SENDGRID_USERNAME']
-EMAIL_HOST= 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+#this will throw an error while testing locally
+#change DEBUG to True to avoid this
+if not DEBUG:
+    EMAIL_HOST_USER = os.environ['SENDGRID_USERNAME']
+    EMAIL_HOST= 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,8 +33,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ')+4c6&a_u#by1v*l2fqsl4359_@+c39q8)(wli6y-i*dbrlel='
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
 
 ALLOWED_HOSTS = []
 
