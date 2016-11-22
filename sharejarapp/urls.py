@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^createUser', views.createUser, name='createUser'),
     url(r'^addCharity', views.addCharity, name='addCharity'),
     url(r'^makePayment/([a-z | A-Z | 0-9]+)', views.makePayment, name='makePayment'),
+    url(r'^confirmPayment(.+)', views.confirmPayment, name='confirmPayment'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

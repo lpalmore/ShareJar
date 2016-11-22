@@ -12,7 +12,7 @@ from django.db.models import Sum
 
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
-from paypal import createPayment
+from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 from team_helpers import addMemberToTeam, generateCode
 
@@ -239,6 +239,20 @@ def makePayment(request, charity):
             # Form data isn't valid. Notify the user
             pass
     else:
-        template = loader.get_template('sharejarapp/makePayment.html')
+        template = loader.get_template('sharejarapp/makepayment.html')
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
+    return HttpResponse(template.render(context, request))
+
+def confirmPayment(request, etc):
+    payerID = request.GET.get('PayerID', '')
+    paymentID = request.GET.get('paymentId', '')
+    print 'payerID: ' + payerID
+    print 'paymentID: ' + paymentID
+    current_user = request.user
+    member = Member.objects.get(user=current_user)
+    success = executePayment(payerID, paymentID, member)
+    template = loader.get_template('sharejarapp/confirmPayment.html')
+    context = {
+        'success': success
+    }
     return HttpResponse(template.render(context, request))

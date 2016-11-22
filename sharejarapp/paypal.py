@@ -3,6 +3,9 @@
 # PayPal Account based Payment.
 # API used: /v1/payments/payment
 from paypalrestsdk import Payment
+from django.core.exceptions import ObjectDoesNotExist
+from models import Balances, Member, Charity
+from decimal import Decimal
 import logging
 import paypalrestsdk
 paypalrestsdk.configure({
@@ -29,7 +32,7 @@ def initPayment(userEmail, amount, charityName, charityEmail):
 
         # Redirect URLs: TODO: These can't stay localhost forever
         "redirect_urls": {
-            "return_url": 'http://localhost:8000/currentBalance',#"http://localhost:3000/payment/execute",
+            "return_url": 'http://localhost:8000/confirmPayment',#"http://localhost:3000/payment/execute",
             "cancel_url": 'http://localhost:8000/makePayment/%s'%(charityName)},#"http://localhost:3000/"},
 
         # Transaction
@@ -43,7 +46,7 @@ def initPayment(userEmail, amount, charityName, charityEmail):
             # ItemList
             "item_list": {
                 "items": [{
-                    "name": "item",
+                    "name": "11/11 Item",
                     "sku": "item",
                     "price": amount,
                     "currency": "USD",
@@ -75,3 +78,24 @@ def createPayment(userEmail, amount, charityName, charityEmail):
         print("Error while creating payment:")
         print(payment.error)
         return None
+
+def executePayment(payerID, paymentID, member):
+    payment = Payment.find(paymentID);
+    success = payment.execute({"payer_id": payerID})
+    if success:
+        print "Successfully executed payment"
+    else:
+        print (payment.error)
+    try:
+        charity = Charity.objects.all().filter(paypal_email=payment.transactions[0].payee.email)
+    except ObjectDoesNotExist:
+        pass
+    try:
+        balances = Balances.objects.all().filter(member=member, charity=charity)
+    except ObjectDoesNotExist:
+        pass
+    b = balances.first()
+    total = Decimal(payment.transactions[0].amount.total)
+    b.balance -= total
+    b.save()
+    return success

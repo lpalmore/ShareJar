@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="jumbotron">
+            {% if success %}
+                Payment confirmed
+            {% else %}
+                There was an error- please try again later.
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
