@@ -3,23 +3,44 @@
 {% block title %} Add Balance {% endblock %}
 
 {% block content %}
-<style>
-div {  text-align: center }
-</style>
-<div class="header-text">
-Add a balance!<br><br>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
+      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
+      <li class="active">{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
+      <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+<div class="page-header">
+  <h3>Add to Balance</h3>
 </div>
-<div>
-   {{ message }}
+<div class="addCharity-panel panel panel-default">
+  <div class="panel-body">
+    <form action="addBalance" method="POST"> {% csrf_token %}
+      {{ form }}
+      <input class="btn btn-default" type="submit" value="submit" />
+    </form>
+  </div>
+
+
+  <div class="stats-text">
+  {% if balance %}
+      <p>{{balance}}</p>
+  {% endif %}
+  </div>
+
+
 </div>
-<form action="addBalance" method="POST">
-   {% csrf_token %}
-   {{ form }}
-</form>
-</div>
-<div class="stats-text">
-{% if balance %}
-    <p>{{balance}}</p>
-{% endif %}
 </div>
 {% endblock %}

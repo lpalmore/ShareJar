@@ -3,17 +3,18 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm
-#from forms import UserForm, AddBalanceForm, AddCharityForm
+from forms import UserForm, AddBalanceForm, AddCharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
-from models import Balances, Member, Charity
+from models import Balances, Member, Charity, Team, TeamMemberList, Invite
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
+from team_helpers import addMemberToTeam, generateCode
 
 
 
@@ -24,23 +25,17 @@ def createUser(request):
         print form.is_valid()
         if form.is_valid():
             user = form.cleaned_data['username']
-            print user;
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             newUser = User.objects.create_user(user, email, password)
+            newUser.save() #so there will not be multiple users
             # Create derived member
             member = Member(user=newUser,
                             paypal_email=form.cleaned_data['paypalEmail'])
             member.save()
-            print "Success "
             return HttpResponseRedirect('login')
-            #add balance of zero for new user
-            #balance = Balances(user=newUser, balance=0)
-            #balance.save()
-            #print balance
     else:
         form = UserForm()
-        print "Error"
     template = loader.get_template('registration/createUser.html')
     context = {
         'form': form,
@@ -96,38 +91,40 @@ def addBalance(request):
 
     return HttpResponse(template.render(context, request))
 
-# #no corresponding page for this...
-# @login_required
-# def addCharity(request):
-#     current_user = request.user
-#     message = ""
-#     #if post request, add charity
-#     if request.method == 'POST':
-#         member = Member.objects.get(user=current_user)
-#         form = AddCharityForm(request.POST)
-#         if form.is_valid():
-#             charityname= form.cleaned_data['charity']
-#             description = form.cleaned_data['description']
-#             paypal_email = form.cleaned_data['email']
-#             Charity.objects.create(charity=charityname, description=description, paypal_email=paypal_email)
-#             message = str(charityname) + " charity has been added!"
-#             #charity added
-#             #else:
-#             #message = "Please enter a charity that has not already been added"
+#no corresponding page for this...
+@login_required
+def addCharity(request):
+    current_user = request.user
+    message = ""
+    #if post request, add charity
+    if request.method == 'POST':
+        member = Member.objects.get(user=current_user)
+        form = AddCharityForm(request.POST)
+        if form.is_valid():
+            print form.cleaned_data
+            charityname= form.cleaned_data['charityname']
+            print charityname
+            description = form.cleaned_data['description']
+            paypal_email = form.cleaned_data['paypal_email']
+            Charity.objects.create(charityname=charityname, description=description, paypal_email=paypal_email)
+            message = str(charityname) + " charity has been added!"
+            #charity added
+            #else:
+            #message = "Please enter a charity that has not already been added"
 
-#     #create form for adding charity
-#     form = AddCharityForm()
-#     #probably need to add /addCharity.html page?
-#     template = loader.get_template('sharejarapp/addCharity.html')
-#     context = {
-#         'form': form
-#         }
+    #create form for adding charity
+    #not letting me do this
+    form = AddCharityForm()
+    template = loader.get_template('sharejarapp/addCharity.html')
+    context = {
+        'form': form
+        }
 
-#     return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def currentBalance(request):
-    
+
     #get user from db
     # return actual username
     #get balance for user
@@ -150,8 +147,76 @@ def currentBalance(request):
 @login_required
 def joinTeam(request):
     template = loader.get_template('sharejarapp/joinTeam.html')
-    context = {
-    }
+    current_user = request.user
+    member = Member.objects.get(user=current_user)
+    currentTeam = None
+    currentTeamObject = None
+    try:
+        currentTeamObject = TeamMemberList.objects.get(member=member).team
+        currentTeam = currentTeamObject.name
+    except ObjectDoesNotExist:
+        pass
+    if request.method == 'POST':
+        #Determine which form was submitted
+        if 'create_team' in request.POST:
+            form = CreateTeamForm(request.POST)
+            if form.is_valid():
+                #Add team with this name to the DB
+                newTeamObject = Team.objects.create(name=form.cleaned_data['name'])
+                newTeamObject.save()
+                addMemberToTeam(member, newTeamObject, currentTeamObject)
+                currentTeam = newTeamObject.name
+            else:
+                print "Create Team Form Error!"
+        elif 'join_team' in request.POST:
+            form = JoinTeamForm(request.POST)
+            if form.is_valid():
+                code = form.cleaned_data['code']
+                try:
+                    inviteObject = Invite.objects.get(code=form.cleaned_data['code'])
+                    if current_user.email == inviteObject.email:
+                        #Add this user to the team
+                        newTeamObject = inviteObject.team
+                        addMemberToTeam(member, newTeamObject, currentTeamObject)
+                        inviteObject.delete()
+                        currentTeam = newTeamObject
+                    else:
+                        # Code does not match this user's email
+                        pass
+                except ObjectDoesNotExist:
+                    pass
+            else:
+                #form error
+                pass
+        elif 'invite_member' in request.POST:
+            # Generate code, associate code with email
+            form = InviteTeamForm(request.POST)
+            if form.is_valid():
+                email = form.cleaned_data['email']
+                inviteObject = Invite.objects.create(team=currentTeamObject, code=generateCode(), email=email)
+                #Send a notification and code to email provided
+            else:
+                pass
+        else:
+            pass #Error!
+    context = {'currentTeam': currentTeam}
+    #Does this member have an outstanding balance?
+    outstandingBalances = None
+    try:
+        outstandingBalances = Balances.objects.filter(member=member).aggregate(Sum('balance'))
+        outstandingBalances = outstandingBalances['balance__sum']
+    except ObjectDoesNotExist:
+        pass
+    if outstandingBalances == None or outstandingBalances == 0:
+        #This user may create or join a new team
+        context['createTeamForm'] = CreateTeamForm()
+        context['joinTeamForm'] = JoinTeamForm()
+    else:
+        print "You have outstanding balances!" + str(outstandingBalances)
+
+    if currentTeam:
+        #This user may invite new people to the team
+        context['inviteTeamForm'] = InviteTeamForm()
     return HttpResponse(template.render(context, request))
 
 @login_required

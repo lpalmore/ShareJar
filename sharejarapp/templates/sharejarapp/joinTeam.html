@@ -1,25 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li class="active">{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
+      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
+      <li>{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
+      <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+
+
 <div class="header-text">
-Join a Team<br><br>
+{% if currentTeam %}
+Current Team: {{currentTeam}}
+{% else %}
+Join a Team
+{% endif %}
+
 </div>
 
-{% if teams %}
 <div class="styled-select styled-input">
-   <form>
-      Select an Existing Team<br>
-      <select name="team" class="styled-select">
-         {% for team in teams %}
-            <option value="{{team}}">{{team}}</option>
-         {% endfor %}
-      </select>
-      <br><br>
-
-      <input type="submit" name="submit"> <br>
-      <input type="submit" name="create-new-team" value="Create New Team">
-      </div>
+   <form action={% url 'joinTeam' %} method="post"\>
+      Create a team <br>
+      {% csrf_token %}
+      {{createTeamForm}}
+      <input type="submit" value="Create and Join Team" name="create_team" />
    </form>
-{% else %}
- No teams available to join
-{% endif %}
+   <br><br>
+
+   <form form action={% url 'joinTeam' %} method="post"\>
+     Enter an invite code to join {% if currentTeam %} another {% else %} a {% endif %} team
+     {% csrf_token %}
+     {{joinTeamForm}}
+     <input type="submit" value="Accept Team Invitation" name="join_team"/>
+   </form>
+
+   {% if currentTeam %}
+   <form form action={% url 'joinTeam' %} method="post"\>
+     Invite someone to join this team!
+     {% csrf_token %}
+     {{inviteTeamForm}}
+     <br>
+     <input type="submit" value="Invite user to team" name="invite_member"/>
+     <br><br>
+   </form>
+   {% endif %}
+</div>
+</div>
 {% endblock %}

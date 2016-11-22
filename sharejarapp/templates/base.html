@@ -1,44 +1,40 @@
-<head>
-<link rel="stylesheet" type="text/css" href="static/styles.css">
-</head>
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Share Jar</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "bootstrap.min.css" %}">
+    <link rel="stylesheet" href="{% static "styles.css" %}">
+    <script src="{% static "jquery.min.js" %}"></script>
+    <script src="{% static "bootstrap.min.js" %}"></script>
+
+  </head>
+
+<body>
 <title>
 {% block title %} Share Jar {% endblock %}
 </title>
 
-{% block navbar %}
-<style>
-    li b{
-        display: block;
-        color: white;
-        padding: 14px 16px;
-        text-decoration: none;
-        float: left;
+{% block content%}
 
-    }
-    li a {
-        display: block;
-        color: white;
-        padding: 14px 16px;
-        text-decoration: none;
-        float: right;
-    }
-    ul {
-       list-style-type: none;
-       margin: 0;
-       padding: 0;
-       overflow: hidden;
-       background-color: #090908;
-    }
+{% endblock %}
+
+</body>
+</html>
+
+<style>
+.navbar-nav a {
+  border-style: solid;
+  border-color: white;
+  padding: 0.5em;
+}
+.navbar-nav > .active a {
+  border-style: solid;
+  border-color: red;
+  padding: 0.5em;
+}
 
 </style>
-<ul>
-    <li> <b> Share Jar </b>
-    <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
-    <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
-    <li>{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
-    <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
-</ul>
-{% endblock %}
-
-{% block content%}
-{% endblock %}
