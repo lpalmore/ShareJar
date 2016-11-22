@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 #this will throw an error while testing locally
 #change DEBUG to True to avoid this
 if not DEBUG:
@@ -22,6 +22,7 @@ if not DEBUG:
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
     EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
+    DEFAULT_FROM_EMAIL = "sharejardev@gmail.com"
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
