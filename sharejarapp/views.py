@@ -10,6 +10,9 @@ from models import Balances, Member, Charity, Team, TeamMemberList, Invite
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
@@ -91,7 +94,6 @@ def addBalance(request):
 
     return HttpResponse(template.render(context, request))
 
-#no corresponding page for this...
 @login_required
 def addCharity(request):
     current_user = request.user
@@ -106,14 +108,17 @@ def addCharity(request):
             print charityname
             description = form.cleaned_data['description']
             paypal_email = form.cleaned_data['paypal_email']
-            Charity.objects.create(charityname=charityname, description=description, paypal_email=paypal_email)
-            message = str(charityname) + " charity has been added!"
-            #charity added
-            #else:
-            #message = "Please enter a charity that has not already been added"
-
+            try:
+                validate_email(paypal_email)
+                #insert checks in this block to see if this charity has already been added (do not want duplicate charity to be added)
+            except ValidationError as e:
+                print "Please enter a valid email."
+                message = str(paypal_email) + "is not an email address. Please enter a valid email address."
+            else:
+                print "Email is valid."
+                Charity.objects.create(charityname=charityname, description=description, paypal_email=paypal_email)
+                message = str(charityname) + " charity has been added!"
     #create form for adding charity
-    #not letting me do this
     form = AddCharityForm()
     template = loader.get_template('sharejarapp/addCharity.html')
     context = {
