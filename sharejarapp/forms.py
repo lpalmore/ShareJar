@@ -27,10 +27,48 @@ class AddBalanceForm(forms.Form):
 class MakePaymentForm(forms.Form):
     amount = forms.IntegerField(max_value=100, min_value=1)
 
-class AddCharityForm(forms.Form):
-   charityname = forms.CharField(max_length=80, label='Charity Name')
-   description = forms.CharField(max_length=150, label="Description")
-   paypal_email = forms.EmailField(label="Charity Email")
+class EditCharityForm(forms.Form):
+   charityname = forms.CharField(max_length=80, label='New Name', required=False)
+   description = forms.CharField(max_length=150, label="New Description", required=False)
+   paypal_email = forms.EmailField(label="New Paypal Email", required=False)
+
+   class Meta:
+        model = Charity
+        fields = ('charityname', 'description', 'paypal_email')
+
+   def clean_charityname(self):
+        charityname = self.cleaned_data['charityname']
+        if Charity.objects.filter(charityname=charityname).exists():
+            raise forms.ValidationError("A charity with that name already exists.")
+        return charityname
+
+   def clean_paypal_email(self):
+        paypal_email = self.cleaned_data['paypal_email']
+        if Charity.objects.filter(paypal_email=paypal_email).exists():
+            raise forms.ValidationError("A charity with that email already exists.")
+        return paypal_email
+
+class LookupCharityForm(forms.Form):
+    charityname = forms.CharField(max_length=80, label='Charity Name')
+
+class LookupUserForm(forms.Form):
+    username = forms.CharField(max_length=80, label='Username')
+
+class CharityForm(ModelForm):
+
+    class Meta:
+        model = Charity
+        fields = ('charityname', 'description', 'paypal_email')
+    def clean_charityname(self):
+        charityname = self.cleaned_data['charityname']
+        if Charity.objects.filter(charityname=charityname).exists():
+            raise forms.ValidationError("A charity with that name already exists.")
+        return charityname
+    def clean_paypal_email(self):
+        paypal_email = self.cleaned_data['paypal_email']
+        if Charity.objects.filter(paypal_email=paypal_email).exists():
+            raise forms.ValidationError("A charity with that email already exists.")
+        return paypal_email
 
 class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80)

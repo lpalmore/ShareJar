@@ -3,12 +3,13 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm, AddCharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm
+from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
-from models import Balances, Member, Charity, Team, TeamMemberList, Invite
+from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
+from django.urls import reverse
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -47,7 +48,12 @@ def createUser(request):
 
 @login_required
 def home(request):
-    template = loader.get_template('sharejarapp/index.html')
+    current_user = request.user
+    try:
+        admin = Admin.objects.get(user=current_user)
+        template = loader.get_template('sharejarapp/adminIndex.html')
+    except ObjectDoesNotExist:
+        template = loader.get_template('sharejarapp/index.html')
     context = {
     }
     return HttpResponse(template.render(context, request))
@@ -88,39 +94,6 @@ def addBalance(request):
     #create form for adding balance
     form = AddBalanceForm()
     template = loader.get_template('sharejarapp/addBalance.html')
-    context = {
-        'form': form
-        }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def addCharity(request):
-    current_user = request.user
-    message = ""
-    #if post request, add charity
-    if request.method == 'POST':
-        member = Member.objects.get(user=current_user)
-        form = AddCharityForm(request.POST)
-        if form.is_valid():
-            print form.cleaned_data
-            charityname= form.cleaned_data['charityname']
-            print charityname
-            description = form.cleaned_data['description']
-            paypal_email = form.cleaned_data['paypal_email']
-            try:
-                validate_email(paypal_email)
-                #insert checks in this block to see if this charity has already been added (do not want duplicate charity to be added)
-            except ValidationError as e:
-                print "Please enter a valid email."
-                message = str(paypal_email) + "is not an email address. Please enter a valid email address."
-            else:
-                print "Email is valid."
-                Charity.objects.create(charityname=charityname, description=description, paypal_email=paypal_email)
-                message = str(charityname) + " charity has been added!"
-    #create form for adding charity
-    form = AddCharityForm()
-    template = loader.get_template('sharejarapp/addCharity.html')
     context = {
         'form': form
         }
@@ -259,5 +232,161 @@ def confirmPayment(request, etc):
     template = loader.get_template('sharejarapp/confirmPayment.html')
     context = {
         'success': success
+    }
+    return HttpResponse(template.render(context, request))
+
+
+@login_required
+def addCharity(request):
+    current_user = request.user
+    message = ""
+    #if post request, add charity
+    if request.method == 'POST':
+        form = CharityForm(request.POST)
+        if form.is_valid():
+            charityname= form.cleaned_data['charityname']
+            description = form.cleaned_data['description']
+            paypal_email = form.cleaned_data['paypal_email']
+            charity = Charity.objects.create(charityname=charityname, description=description, paypal_email=paypal_email)
+            charity.save()
+            return HttpResponseRedirect(reverse('adminHome'))
+    else:
+        form = CharityForm()
+    template = loader.get_template('sharejarapp/addCharity.html')
+    context = {
+        'form': form
+    }
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def lookupCharity(request):
+    hasSearched = False
+    if request.method == 'POST':
+        hasSearched = True
+        form = LookupCharityForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['charityname']
+            charities = Charity.objects.all().filter(charityname=name)
+            template = loader.get_template('sharejarapp/lookupCharity.html')
+            context = {
+                'form': form,
+                'charities': charities
+            }
+            return HttpResponse(template.render(context, request))
+    else:
+        form = LookupCharityForm()
+        template = loader.get_template('sharejarapp/lookupCharity.html')
+        context = {
+            'hasSearched': hasSearched,
+            'form': form
+        }
+        return HttpResponse(template.render(context, request))
+
+@login_required
+def editCharity(request, charityName):
+    charity = Charity.objects.get(charityname=charityName)
+    if request.method == 'POST':
+        form = EditCharityForm(request.POST)
+        if form.is_valid():
+            charityname= form.cleaned_data['charityname']
+            description = form.cleaned_data['description']
+            paypal_email = form.cleaned_data['paypal_email']
+            if (charityname != ''):
+                charity.charityname = charityname
+            if (description != ''):
+                charity.description = description
+            if (paypal_email != ''): 
+                charity.paypal_email = paypal_email
+            charity.save()
+    else:
+        form = EditCharityForm()
+    template = loader.get_template('sharejarapp/editCharity.html')
+    context = {
+        'form': form,
+        'charity': charity
+    }
+    return HttpResponse(template.render(context, request))
+
+
+@login_required
+def removeCharity(request):
+    hasSearched = False
+    if request.method == 'POST':
+        hasSearched = True
+        form = LookupCharityForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['charityname']
+            charities = Charity.objects.all().filter(charityname=name)
+            template = loader.get_template('sharejarapp/removeCharity.html')
+            context = {
+                'form': form,
+                'charities': charities
+            }
+            return HttpResponse(template.render(context, request))
+    else:
+        form = LookupCharityForm()
+        template = loader.get_template('sharejarapp/removeCharity.html')
+        context = {
+            'form': form,
+            'hasSearched': hasSearched
+        }
+        return HttpResponse(template.render(context, request))
+
+@login_required
+def confirmRemoveCharity(request, charityName):
+    charity = Charity.objects.get(charityname=charityName)
+    if request.GET.get('confirm'):
+        Balances.objects.all().filter(charity=charity).delete()
+        charity.delete()
+        return HttpResponseRedirect(reverse('adminHome'))
+    template = loader.get_template('sharejarapp/confirmRemoveCharity.html')
+    context = {
+        'charity': charity
+    }
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def deleteAccount(request):
+    if request.method == 'POST':
+        form = LookupUserForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            user = User.objects.all().filter(username=username)
+            members = Member.objects.all().filter(user=user)
+            template = loader.get_template('sharejarapp/deleteAccount.html')
+            context = {
+                'form': form,
+                'members': members
+            }
+            return HttpResponse(template.render(context, request))
+    else:
+        form = LookupUserForm()
+        template = loader.get_template('sharejarapp/deleteAccount.html')
+        context = {
+            'form': form
+        }
+        return HttpResponse(template.render(context, request))
+
+@login_required
+def confirmDeleteAccount(request, username):
+    user = User.objects.get(username=username)
+    account = Member.objects.get(user=user)
+    if request.GET.get('confirm'):
+        #TeamMemberList.objects.all().filter(member=account).delete()
+        Balances.objects.all().filter(member=account).delete()
+        #account.delete()
+        return HttpResponseRedirect(reverse('adminHome'))
+    template = loader.get_template('sharejarapp/confirmDeleteAccount.html')
+    context = {
+        'member': account
+    }
+    return HttpResponse(template.render(context, request))
+
+
+
+@login_required
+def editBalance(request):
+    template = loader.get_template('sharejarapp/editBalance.html') 
+    context = {
     }
     return HttpResponse(template.render(context, request))

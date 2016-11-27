@@ -10,10 +10,9 @@
     </div>
     <ul class="nav navbar-nav navbar-right">
       <li class="active">{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
-      <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
-      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
-      <li>{% block navaddtobalance %} <a href="{% url 'addBalance' %}">Add to balance</a>{% endblock %}</li>
-      <li>{% block navcurrentbalance  %} <a href="{% url 'currentBalance' %}">Current balance</a>{% endblock %}</li>
+      <li>{% block navremcharity %} <a href="{% url 'removeCharity' %}">Remove Charity</a>{% endblock %}</li>
+      <li>{% block naveditcharity %} <a href="{% url 'lookupCharity' %}">Edit Charity</a>{% endblock %}</li>
+      <li>{% block navdelaccount  %} <a href="{% url 'deleteAccount' %}">Delete User Account</a>{% endblock %}</li>
     </ul>
     <ul class="nav navbar-nav">
       <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
@@ -32,7 +31,12 @@
       <p class="form-addCharity">
         {% if form.errors %}
           <div class="alert alert-danger">
-            <p>Error</p>
+            {% for error in form.charityname.errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+            {% for error in form.paypal_email.errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
           </div>
         {% endif %}
         <div class="form-group">

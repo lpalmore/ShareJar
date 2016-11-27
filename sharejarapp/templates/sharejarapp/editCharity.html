@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul id="sharejarnav" class="nav navbar-nav navbar-right">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li class="active">{% block navremcharity %} <a href="{% url 'removeCharity' %}">Remove Charity</a>{% endblock %}</li>
+      <li>{% block naveditcharity %} <a href="{% url 'lookupCharity' %}">Edit Charity</a>{% endblock %}</li>
+      <li>{% block navdelaccount  %} <a href="{% url 'deleteAccount' %}">Delete Account</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+
+<div class="home">
+<div class="page-header">
+  <h3>Edit Charity</h3>
+</div>
+    <h4>Current Details:</h4>
+      <h5>Name: {{charity.charityname}}</h5>
+      <h5>Descrption: {{charity.description}}</h5>
+      <h5>Paypal Email: {{charity.paypal_email}}</h5>
+    <h4>Enter the charity's new information. Leave fields you do not want to change blank.</h4>
+      <div class="editCharity-panel panel panel-default">
+        <div class="panel-body">
+          <form action="{% url 'editCharity' charity.charityname %}" method="POST">{% csrf_token %}
+            <p class="form-editCharity">
+              {% if form.errors %}
+                <div class="alert alert-danger">
+                  {% for error in form.charityname.errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                  {% for error in form.paypal_email.errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-group">
+                {{ form.charityname.label_tag }}
+                {{form.charityname}}
+              </div>
+              <div class="form-group">
+                {{ form.description.label_tag }}
+                {{ form.description }}
+              </div>
+              <div class="form-group">
+                {{ form.paypal_email.label_tag }}
+                {{ form.paypal_email }}
+              </div>
+            </p>
+             <input class="btn btn-default" type="submit" value="submit" />
+          </form>
+        </div>
+  </div>
+</div>
+<div>
+{% endblock %}

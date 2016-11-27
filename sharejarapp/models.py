@@ -6,9 +6,9 @@ from django.conf import settings
 import uuid
 
 class Charity(models.Model):
-	charityname = models.CharField(max_length=80, unique=True, default="DefaultCharityName")
+	charityname = models.CharField(max_length=80, unique=True)
 	description = models.CharField(max_length=150)
-	paypal_email = models.EmailField()
+	paypal_email = models.EmailField(unique=True)
 
 	def __unicode__(self):
 		return u'{0}'.format(self.charityname)

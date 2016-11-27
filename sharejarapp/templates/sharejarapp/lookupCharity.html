@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul id="sharejarnav" class="nav navbar-nav navbar-right">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li class="active">{% block navremcharity %} <a href="{% url 'removeCharity' %}">Remove Charity</a>{% endblock %}</li>
+      <li>{% block naveditcharity %} <a href="{% url 'lookupCharity' %}">Edit Charity</a>{% endblock %}</li>
+      <li>{% block navdelaccount  %} <a href="{% url 'deleteAccount' %}">Delete Account</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+<div class="home">
+<div class="page-header">
+  <h3>Edit a Charity</h3>
+  <h4>Search for the charity to be edited below.</h4>
+</div>
+<div class="lookupCharity-panel panel panel-default">
+  <div class="panel-body">
+    <form action="lookupCharity" method="POST">{% csrf_token %}
+      <p class="form-lookupCharity">
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <p>Error</p>
+          </div>
+        {% endif %}
+        <div class="form-group">
+          {{ form.charityname.label_tag }}
+          {{form.charityname}}
+        </div>
+      </p>
+       <input class="btn btn-default" type="submit" value="Search" />
+    </form>
+  </div>
+<div class="charityList-panel panel panel-default">
+  <div class="panel-body">
+    <div class="stats-text">
+    {% if charities %}
+      {% for charity in charities %}
+         <label for="charity">Name: {{charity.charityname}}  Paypal Email: {{charity.paypal_email}}</label>
+         <a href="{% url 'editCharity' charity.charityname %}" class="btn btn-default">Edit Charity</a>
+      {%  endfor %}
+    {% elif hasSearched %}
+        <label for="charity">No charities with that name were found. Please try again.</label>
+    {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+<div>
+{% endblock %}

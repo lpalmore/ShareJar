@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+    </div>
+    <ul id="sharejarnav" class="nav navbar-nav navbar-right">
+      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+      <li>{% block navremcharity %} <a href="{% url 'removeCharity' %}">Remove Charity</a>{% endblock %}</li>
+      <li>{% block naveditcharity %} <a href="{% url 'lookupCharity' %}">Edit Charity</a>{% endblock %}</li>
+      <li class="active">{% block navdelaccount  %} <a href="{% url 'deleteAccount' %}">Delete Account</a>{% endblock %}</li>
+    </ul>
+    <ul class="nav navbar-nav">
+      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+
+<div class="home">
+<div class="page-header">
+  <h3>Delete a User Account</h3>
+  <h4>Search for the account to be deleted below.</h4>
+</div>
+<div class="lookupUser-panel panel panel-default">
+  <div class="panel-body">
+    <form action="deleteAccount" method="POST">{% csrf_token %}
+      <p class="form-lookupUser">
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <p>Error</p>
+          </div>
+        {% endif %}
+        <div class="form-group">
+          {{ form.username.label_tag }}
+          {{form.username}}
+        </div>
+      </p>
+       <input class="btn btn-default" type="submit" value="Search" />
+    </form>
+  </div>
+<div class="accountList-panel panel panel-default">
+  <div class="panel-body">
+    <div class="stats-text">
+    {% if members %}
+      {% for member in members %}
+         <label for="member">Username: {{member.user.username}}  Email: {{member.user.email}} Paypal Email: {{member.paypal_email}}</label>
+         <a href="{% url 'confirmDeleteAccount' member.user.username %}" class="btn btn-default">Delete Account</a>
+      {%  endfor %}
+    {% elif hasSearched %}
+        <label for="member">No users with that username were found. Please try again.</label>
+    {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+<div>
+{% endblock %}
