@@ -22,3 +22,29 @@ def generateCode():
     while code in existingCodes:
         code = get_random_string(lengt=6)
     return code
+
+'''
+    teamName: String
+    member: member id of user
+'''
+def leaveTeam(teamName, member):
+    team = Team.objects.all().filter(name=teamName)
+
+    #remove user from TeamMemberList
+    teamMembers = TeamMemberList.objects.all().filter(team=team, member=member).all().delete()
+
+    #if user is leader, update team leader
+    if team.leader == member:
+        #if they are the only member, delete team
+        if not TeamMemberList.objects.all().filter(team=team).all().exists():
+            deleteTeam(teamName)
+        #otherwise, select random member
+        #TODO: they must choose replacement
+        else:
+            team.leader = TeamMemberList.objects.all().filter(team=team).first()
+            team.save()
+    return
+
+def deleteTeam(teamName):
+    team = Team.objects.all().filter(name=teamName).first().delete() deleting team
+    return
