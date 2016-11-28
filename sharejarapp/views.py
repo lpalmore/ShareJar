@@ -140,7 +140,7 @@ def joinTeam(request):
             form = CreateTeamForm(request.POST)
             if form.is_valid():
                 #Add team with this name to the DB
-                newTeamObject = Team.objects.create(name=form.cleaned_data['name'])
+                newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member)
                 newTeamObject.save()
                 addMemberToTeam(member, newTeamObject, currentTeamObject)
                 currentTeam = newTeamObject.name
@@ -295,7 +295,7 @@ def editCharity(request, charityName):
                 charity.charityname = charityname
             if (description != ''):
                 charity.description = description
-            if (paypal_email != ''): 
+            if (paypal_email != ''):
                 charity.paypal_email = paypal_email
             charity.save()
     else:
@@ -386,7 +386,7 @@ def confirmDeleteAccount(request, username):
 
 @login_required
 def editBalance(request):
-    template = loader.get_template('sharejarapp/editBalance.html') 
+    template = loader.get_template('sharejarapp/editBalance.html')
     context = {
     }
     return HttpResponse(template.render(context, request))
