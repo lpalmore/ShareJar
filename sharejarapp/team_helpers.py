@@ -46,5 +46,5 @@ def leaveTeam(teamName, member):
     return
 
 def deleteTeam(teamName):
-    team = Team.objects.all().filter(name=teamName).first().delete() deleting team
+    team = Team.objects.all().filter(name=teamName).first().delete() #deleting team
     return
