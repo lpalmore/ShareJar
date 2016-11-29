@@ -38,7 +38,12 @@ Join a Team
      <input type="submit" value="Invite user to team" name="invite_member"/>
      <br><br>
    </form>
+   <form form action={% url 'joinTeam' %} method="post"\>
+     {% csrf_token %}
+     <input type="submit" value="Leave Team" name="leave_team" />
+   </form>
    {% endif %}
+
 </div>
 </div>
 {% endblock %}

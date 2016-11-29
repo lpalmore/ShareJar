@@ -18,7 +18,7 @@ from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
-from team_helpers import addMemberToTeam, generateCode
+from team_helpers import addMemberToTeam, generateCode, leaveTeam
 from balance_helpers import getBalance, addToBalance
 
 
@@ -140,8 +140,13 @@ def joinTeam(request):
                 #Send a notification and code to email provided
             else:
                 pass
+        elif 'leave_team' in request.POST:
+            leaveTeam(currentTeam, member)
+            currentTeam = None
+            currentTeamObject = None
         else:
             pass #Error!
+
     context = {'currentTeam': currentTeam}
     #Does this member have an outstanding balance?
     outstandingBalances = None

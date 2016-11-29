@@ -28,7 +28,7 @@ def generateCode():
     member: member id of user
 '''
 def leaveTeam(teamName, member):
-    team = Team.objects.all().filter(name=teamName)
+    team = Team.objects.all().filter(name=teamName).first()
 
     #remove user from TeamMemberList
     teamMembers = TeamMemberList.objects.all().filter(team=team, member=member).all().delete()
@@ -37,6 +37,7 @@ def leaveTeam(teamName, member):
     if team.leader == member:
         #if they are the only member, delete team
         if not TeamMemberList.objects.all().filter(team=team).all().exists():
+            print "deleteing team"
             deleteTeam(teamName)
         #otherwise, select random member
         #TODO: they must choose replacement
