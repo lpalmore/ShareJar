@@ -60,3 +60,8 @@ def transferLeader(teamName, newLeader):
     team.leader = newLeader
     team.save()
     return
+
+def getMembers(teamName):
+    team = Team.objects.all().filter(name=teamName).first()
+    members = TeamMemberList.objects.all().filter(team = team).all()
+    return
