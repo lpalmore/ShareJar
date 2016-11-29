@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm
 from django.contrib.auth import login
@@ -21,6 +21,12 @@ from django.shortcuts import redirect
 from team_helpers import addMemberToTeam, leaveTeam
 from balance_helpers import getBalance, addToBalance
 
+def admin_check(user):
+    try:
+        admin = Admin.objects.get(user=user)
+        return True
+    except ObjectDoesNotExist:
+        return False
 
 def createUser(request):
     #if post request, create the new user
@@ -228,6 +234,7 @@ def makePayment(request, charity):
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
     return HttpResponse(template.render(context, request))
 
+@login_required
 def confirmPayment(request, etc):
     payerID = request.GET.get('PayerID', '')
     paymentID = request.GET.get('paymentId', '')
@@ -243,7 +250,7 @@ def confirmPayment(request, etc):
     return HttpResponse(template.render(context, request))
 
 
-@login_required
+@user_passes_test(admin_check)
 def addCharity(request):
     current_user = request.user
     message = ""
@@ -265,7 +272,7 @@ def addCharity(request):
     }
     return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def lookupCharity(request):
     hasSearched = False
     if request.method == 'POST':
@@ -289,7 +296,7 @@ def lookupCharity(request):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def editCharity(request, charityName):
     charity = Charity.objects.get(charityname=charityName)
     if request.method == 'POST':
@@ -315,7 +322,7 @@ def editCharity(request, charityName):
     return HttpResponse(template.render(context, request))
 
 
-@login_required
+@user_passes_test(admin_check)
 def removeCharity(request):
     hasSearched = False
     if request.method == 'POST':
@@ -339,7 +346,7 @@ def removeCharity(request):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def confirmRemoveCharity(request, charityName):
     charity = Charity.objects.get(charityname=charityName)
     if request.GET.get('confirm'):
@@ -352,7 +359,7 @@ def confirmRemoveCharity(request, charityName):
     }
     return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def deleteAccount(request):
     if request.method == 'POST':
         form = LookupUserForm(request.POST)
@@ -374,7 +381,7 @@ def deleteAccount(request):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def confirmDeleteAccount(request, username):
     user = User.objects.get(username=username)
     account = Member.objects.get(user=user)
@@ -391,7 +398,7 @@ def confirmDeleteAccount(request, username):
 
 
 
-@login_required
+@user_passes_test(admin_check)
 def editBalance(request):
     template = loader.get_template('sharejarapp/editBalance.html')
     context = {
