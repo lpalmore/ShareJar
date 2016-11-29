@@ -48,3 +48,15 @@ def leaveTeam(teamName, member):
 def deleteTeam(teamName):
     team = Team.objects.all().filter(name=teamName).first().delete() #deleting team
     return
+
+def editTeamName(teamName, newTeamName):
+    team = Team.objects.all().filter(name=teamName).first()
+    team.name = newTeamName
+    team.save()
+    return
+
+def transferLeader(teamName, newLeader):
+    team = Team.objects.all().filter(name=teamName).first()
+    team.leader = newLeader
+    team.save()
+    return
