@@ -19,7 +19,7 @@ from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 from team_helpers import addMemberToTeam, generateCode
-
+from balance_helpers import getBalance, addToBalance
 
 
 def createUser(request):
@@ -66,60 +66,25 @@ def teamStats(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def addBalance(request):
+def balance(request):
     current_user = request.user
-    message = ""
-    #if post request, add increment
-    if request.method == 'POST':
+
+    if request.method == "POST":
         member = Member.objects.get(user=current_user)
         form = AddBalanceForm(request.POST)
         if form.is_valid():
             increment = form.cleaned_data['increment']
             charityname= form.cleaned_data['charity']
-            #get user
-            #update balance for that user
-            if increment >= 0:
-                b = None
-                try:
-                    b = Balances.objects.get(member=member, charity=charityname)
-                    b.balance += increment
-                    b.save()
-                except ObjectDoesNotExist:
-                    b = Balances.objects.create(member=member, charity=charityname, balance=increment)
-                message = str(increment) + " has been added!"
-            #balance added
-            else:
-                message = "Please enter a positive value"
-
-    #create form for adding balance
+            addToBalance(member, charityname, increment)
+    #get balance info and create add balance form
+    balances = getBalance(current_user)
     form = AddBalanceForm()
-    template = loader.get_template('sharejarapp/addBalance.html')
+
+    template = loader.get_template('sharejarapp/balance.html')
     context = {
+        'balances': balances,
         'form': form
-        }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def currentBalance(request):
-
-    #get user from db
-    # return actual username
-    #get balance for user
-    current_user = request.user
-    member = Member.objects.get(user=current_user)
-    b = None
-    try:
-        b = Balances.objects.all().filter(member=member)
-    except ObjectDoesNotExist:
-        pass
-    #balance = b.balance
-    #pass template to browser
-    #Example context for this template
-    context = {
-        'balances': b
     }
-    template = loader.get_template('sharejarapp/currentBalance.html')
     return HttpResponse(template.render(context, request))
 
 @login_required
