@@ -18,7 +18,7 @@ from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
-from team_helpers import addMemberToTeam, generateCode, leaveTeam
+from team_helpers import addMemberToTeam, leaveTeam
 from balance_helpers import getBalance, addToBalance
 
 
