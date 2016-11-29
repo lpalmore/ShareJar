@@ -2,7 +2,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
 from django.forms import ModelForm
-from models import Member, Charity, Balances
+from models import Member, Charity, Balances, Invite, Team
 from django.core.exceptions import ValidationError
 
 class UserForm(ModelForm):
@@ -74,7 +74,13 @@ class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80)
 
 class InviteTeamForm(forms.Form):
-    email = forms.EmailField()
+    # How can I make this match the username field?
+    username = forms.CharField(max_length=80)
 
 class JoinTeamForm(forms.Form):
-    code = forms.CharField(max_length=6, label="Invitation Code")
+    team = None
+    def __init__(self, *args, **kwargs):
+        currentMember = kwargs.pop('member', None)
+        super(JoinTeamForm, self).__init__(*args, **kwargs)
+        if currentMember is not None:
+            self.fields['team'] = forms.ModelChoiceField(queryset=Invite.objects.filter(member=currentMember))

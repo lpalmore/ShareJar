@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
-import uuid
 
 class Charity(models.Model):
 	charityname = models.CharField(max_length=80, unique=True)
@@ -51,6 +50,14 @@ class TeamMemberList(models.Model):
 	team = models.ForeignKey(Team)
 	member = models.ForeignKey(Member)
 
+# Donation are the result of a payment
+class Donation(models.Model):
+	member = models.ForeignKey(Member)
+	charity = models.ForeignKey(Charity)
+	# Need to know which team the user was one when the donation was made
+	team = models.ForeignKey(Team)
+	# Should match the characteristics of "balance" in "Balances"
+	total = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 
 class Balances(models.Model):
 	#username_text = models.CharField(max_length=20, primary_key=True) #FIXLATER add check to make sure username under 20 characters
@@ -62,7 +69,7 @@ class Balances(models.Model):
 		unique_together = (("member", "charity"))
 
 class Invite(models.Model):
-	email = models.EmailField()
-	# let Django auto generate this field with a length 6 uuid
-	code = models.CharField(max_length=6, unique=True)
+	member = models.ForeignKey(Member, default=None)
 	team = models.ForeignKey(Team)
+	def __unicode__(self):
+		return u'{0}'.format(self.team.name)
