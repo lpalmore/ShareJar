@@ -18,7 +18,9 @@
   </div>
 </nav>
 
-Select a Team <br>
+<div class="page-header">
+  <h3>Team Balances</h3>
+</div>
 {% for team in teams %}
 <a href="{% url 'teamStats' team.name %}">{{team.name}}</a>
 <br>

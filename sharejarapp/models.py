@@ -36,15 +36,15 @@ class Log(models.Model):
 	                          choices=ADMIN_ACTIONS_CHOICES,
 							  default=ADDED)
 
-class Team(models.Model):
-	name = models.CharField(max_length=80, unique=True, default='Unknown')
-	def __unicode__(self):
-		return u'{0}'.format(self.name)
-
-
 class Member(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL)
 	paypal_email = models.EmailField(null=False, blank=False)
+
+class Team(models.Model):
+	name = models.CharField(max_length=80, unique=True, default='Unknown')
+	leader = models.ForeignKey(Member)
+	def __unicode__(self):
+		return u'{0}'.format(self.name)
 
 class TeamMemberList(models.Model):
 	team = models.ForeignKey(Team)

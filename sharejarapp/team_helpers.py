@@ -1,6 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite
-from django.utils.crypto import get_random_string
 
 
 # Deletes the teamObject instance if it has no remaining members or pending invites
@@ -25,3 +24,46 @@ def addMemberToTeam(member, newTeamObject, currentTeamObject=None):
         #Add member to new team
         listObject = TeamMemberList.objects.create(member=member, team=newTeamObject)
         listObject.save()
+
+'''
+    teamName: String
+    member: member id of user
+'''
+def leaveTeam(teamName, member):
+    team = Team.objects.all().filter(name=teamName)
+
+    #remove user from TeamMemberList
+    teamMembers = TeamMemberList.objects.all().filter(team=team, member=member).all().delete()
+
+    #if user is leader, update team leader
+    if team.leader == member:
+        #if they are the only member, delete team
+        if not TeamMemberList.objects.all().filter(team=team).all().exists():
+            deleteTeam(teamName)
+        #otherwise, select random member
+        #TODO: they must choose replacement
+        else:
+            team.leader = TeamMemberList.objects.all().filter(team=team).first()
+            team.save()
+    return
+
+def deleteTeam(teamName):
+    team = Team.objects.all().filter(name=teamName).first().delete() #deleting team
+    return
+
+def editTeamName(teamName, newTeamName):
+    team = Team.objects.all().filter(name=teamName).first()
+    team.name = newTeamName
+    team.save()
+    return
+
+def transferLeader(teamName, newLeader):
+    team = Team.objects.all().filter(name=teamName).first()
+    team.leader = newLeader
+    team.save()
+    return
+
+def getMembers(teamName):
+    team = Team.objects.all().filter(name=teamName).first()
+    members = TeamMemberList.objects.all().filter(team = team).all()
+    return
