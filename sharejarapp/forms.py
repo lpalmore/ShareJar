@@ -73,6 +73,9 @@ class CharityForm(ModelForm):
 class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80)
 
+class ChangeTeamNameForm(forms.Form):
+    name = forms.CharField(max_length=80)
+
 class InviteTeamForm(forms.Form):
     email = forms.EmailField()
 

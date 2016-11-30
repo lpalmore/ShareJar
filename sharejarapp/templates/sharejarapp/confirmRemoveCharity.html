@@ -21,10 +21,9 @@
 <div class="container">
 
 <div class="home">
-<div class="page-header">
-  <h3>Are you sure you want to remove this charity?</h3>
-  <h4>This will also delete all user balances associated with this charity.</h4>
-</div>
+  {% block title %}Are you sure you want to remove this charity?{% endblock %}
+  {% block subtitle %}This will also delete all user balances associated with this charity.{% endblock %}
+
       <h5>Name: {{charity.charityname}}</h5>
       <h5>Descrption: {{charity.description}}</h5>
       <h5>Paypal Email: {{charity.paypal_email}}</h5>

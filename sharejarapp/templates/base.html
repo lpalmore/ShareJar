@@ -14,9 +14,7 @@
   </head>
 
 <body>
-<title>
-{% block title %} Share Jar {% endblock %}
-</title>
+
 <nav class="navbar navbar-inverse">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -31,9 +29,25 @@
     </ul>
   </div>
 </nav>
+
+
+<div class="container">
+
+<div class="page-header">
+  <h3>{% block title %}{% endblock %}</h3>
+  <h4>{% block subtitle%}{% endblock %}</h4>
+</div>
+
+
 {% block content%}
 
 {% endblock %}
 
 </body>
 </html>
+
+
+<script>
+{% block script %}
+{% endblock %}
+</script>

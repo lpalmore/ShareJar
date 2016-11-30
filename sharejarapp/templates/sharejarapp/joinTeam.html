@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block content %}
+
 
 <div class="container">
 
 
-<div class="header-text">
+{% block title %}
 {% if currentTeam %}
 Current Team: {{currentTeam}}
 {% else %}
 Join a Team
 {% endif %}
+{% endblock %}
 
-</div>
-
+{% block content %}
 <div class="styled-select styled-input">
    <form action={% url 'joinTeam' %} method="post"\>
       Create a team <br>
@@ -43,7 +43,59 @@ Join a Team
      <input type="submit" value="Leave Team" name="leave_team" />
    </form>
    {% endif %}
+   {% if isCurrentLeader %}
+       <form form action={% url 'joinTeam' %} method="post"\>
+         {% csrf_token %}
+         <div>
+           <label>Edit Team Member Balances</label><br>
+           Select Member
+            <select name="member" id="MemberDropDown" Height="72px" Width="184px">
+                <option selected disabled style='display: none' value=''></option>
+                {% for m in membernames %}
+                  <option Value={{m}}>{{m}}</option>
+                {% endfor %}
+            </select>
+            <br />
+            Select Charity/Balance
+            <select name="charity" id="BalancesDropDown" Height="18px" Width="187px">
+                <option selected disabled style='display: none' value=''></option>
+                {% for b in charitybalances %}
+                  <option Value={{b.member.user}}_{{b.charity}}>${{b.balance}} {{b.charity}}</option>
+                {% endfor %}
+            </select>
+            Select Amount (negative or positive) <input type="text" name="amount">
+            <input type="submit" value="Edit Balance" name="edit_balance"/>
+          </div>
+     </form>
+     <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+       <div>
+         <label>Change Team Leader</label><br>
+         <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
+           <option selected disabled style='display: none' value=''></option>
+           {% for m in membernames %}
+             <option Value={{m}}>{{m}}</option>
+           {% endfor %}
+         </select>
+         <input type="submit" value="Change Leader" name="change_leader"/>
+       </div>
+     </form>
+     <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+       <label>Change Team Name</label><br>
+       {{changeTeamNameForm}}
+       <input type="submit" value="Change Team Name" name="change_team_name"/>
+     </form>
+   {% endif %}
+</div>
+</div>
+{% endblock %}
 
-</div>
-</div>
+{% block script %}
+var options = $("#BalancesDropDown").html();
+$("#MemberDropDown").change(function(e) {
+    var text = $("#MemberDropDown :selected").text();
+    $("#BalancesDropDown").html(options);
+    if (text == "All") return;
+    $('#BalancesDropDown :not([value^="' + text + '_' + '"])').remove();
+
+});
 {% endblock %}

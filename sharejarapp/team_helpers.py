@@ -42,9 +42,13 @@ def leaveTeam(teamName, member):
         #otherwise, select random member
         #TODO: they must choose replacement
         else:
-            team.leader = TeamMemberList.objects.all().filter(team=team).first()
+            #TODO error
+            #team.leader = TeamMemberList.objects.all().filter(team=team).first()
             team.save()
     return
+
+def isLeader(member):
+    return Team.objects.all().filter(leader=member).first != None
 
 def deleteTeam(teamName):
     team = Team.objects.all().filter(name=teamName).first().delete() #deleting team
@@ -58,11 +62,36 @@ def editTeamName(teamName, newTeamName):
 
 def transferLeader(teamName, newLeader):
     team = Team.objects.all().filter(name=teamName).first()
-    team.leader = newLeader
+    #TODO fix error
+    #team.leader = newLeader
     team.save()
     return
 
-def getMembers(teamName):
+def getUsernamesInTeam(inTeamName):
+    team = Team.objects.all().filter(name=inTeamName).first()
+    memberlist = TeamMemberList.objects.all().filter(team = team).all()
+    usernames = []
+    for member in memberlist:
+        usernames.append(member.member.user.username)
+    return usernames
+
+def getAllTeamBalances(teamName):
     team = Team.objects.all().filter(name=teamName).first()
-    members = TeamMemberList.objects.all().filter(team = team).all()
+    memberlist = TeamMemberList.objects.all().filter(team = team).all()
+    teamMembers = []
+    for tml in memberlist:
+        teamMembers.append(tml.member)
+    balances = None
+    try:
+        balances = Balances.objects.all().filter(member__in=teamMembers)
+        print balances
+        print balances
+    except ObjectDoesNotExist:
+        pass
+    return balances
+
+def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount):
+    #filter to get row from Balances
+    # add amount to the amount
+    #return True or False
     return
