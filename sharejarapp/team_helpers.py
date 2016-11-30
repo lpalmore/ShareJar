@@ -91,9 +91,24 @@ def getAllTeamBalances(teamName):
     except ObjectDoesNotExist:
         pass
     return balances
-
+'''
 def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount):
-    #filter to get row from Balances
-    # add amount to the amount
-    #return True or False
-    return
+    edit = Balances.objects.all().filter(member = edit_balance_member, charity=edit_balance_charity)
+    cbalance = edit.balance
+    newbalance = cbalance+edit_balance_amount
+    if newbalance < 0:
+        return False
+    elif newbalance >=0:
+        edit.balance = newbalance
+        edit.save()
+        return True
+    return False
+
+def GetTeams(teamMember):
+    teamName = TeamMemberList.objects.all().filter(member=teamMember)
+    teams =[]
+    for t in teamName:
+        teams.append(t.team)
+    return teams
+
+'''
