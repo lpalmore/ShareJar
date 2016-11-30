@@ -5,12 +5,7 @@
 
 
 <div class="header-text">
-{% if currentTeam %}
-Current Team: {{currentTeam}}
-{% else %}
-Join a Team
-{% endif %}
-
+Create, Join, or Leave a Team
 </div>
 
 <div class="styled-select styled-input">
@@ -33,7 +28,7 @@ Join a Team
    You cannot create or join a new team until your balances are cleared<br><br>
    {% endif %}
 
-   {% if currentTeam %}
+   {% if isOnTeam %}
    <form form action={% url 'joinTeam' %} method="post"\>
      Invite someone to join this team!
      {% csrf_token %}
@@ -44,6 +39,7 @@ Join a Team
    </form>
    <form form action={% url 'joinTeam' %} method="post"\>
      {% csrf_token %}
+     {{leaveTeamForm}}
      <input type="submit" value="Leave Team" name="leave_team" />
    </form>
    {% endif %}

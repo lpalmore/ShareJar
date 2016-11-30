@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm
+from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm, LeaveTeamForm, AddTeamBalanceForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin, Donation
@@ -19,7 +19,7 @@ from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 from team_helpers import addMemberToTeam, leaveTeam
-from balance_helpers import getBalance, addToBalance
+from balance_helpers import getAllBalance, getTeamBalance, addToTeamBalance, addToBalance
 
 def admin_check(user):
     try:
@@ -110,22 +110,31 @@ def teamStats(request, teamName=None):
 @login_required
 def balance(request):
     current_user = request.user
-
+    member = Member.objects.get(user=current_user)
     if request.method == "POST":
-        member = Member.objects.get(user=current_user)
-        form = AddBalanceForm(request.POST)
-        if form.is_valid():
-            increment = form.cleaned_data['increment']
-            charityname= form.cleaned_data['charity']
+        directform = AddBalanceForm(request.POST)
+        teamform = AddTeamBalanceForm(request.POST, member=member)
+        if directform.is_valid():
+            increment = directform.cleaned_data['increment']
+            charityname= directform.cleaned_data['charity']
             addToBalance(member, charityname, increment)
+        if teamform.is_valid():
+            increment = teamform.cleaned_data['increment']
+            teamMemberList = teamform.cleaned_data['team']
+            team = teamMemberList.team
+            addToTeamBalance(member, team, increment)
     #get balance info and create add balance form
-    balances = getBalance(current_user)
-    form = AddBalanceForm()
+    balances = getAllBalance(current_user)
+    teambalances = getTeamBalance(current_user)
+    directform = AddBalanceForm()
+    teamform = AddTeamBalanceForm(member=member)
 
     template = loader.get_template('sharejarapp/balance.html')
     context = {
         'balances': balances,
-        'form': form
+        'directform': directform,
+        'teambalances': teambalances,
+        'teamform': teamform
     }
     return HttpResponse(template.render(context, request))
 
@@ -135,12 +144,12 @@ def joinTeam(request):
     current_user = request.user
     member = Member.objects.get(user=current_user)
     currentTeam = None
-    currentTeamObject = None
-    try:
-        currentTeamObject = TeamMemberList.objects.get(member=member).team
+    teamMemberList = member.teammemberlist_set.first()
+    isOnTeam = False
+    if not teamMemberList == None:
+        currentTeamObject = teamMemberList.team
         currentTeam = currentTeamObject.name
-    except ObjectDoesNotExist:
-        pass
+        isOnTeam = True
     if request.method == 'POST':
         #Determine which form was submitted
         if 'create_team' in request.POST:
@@ -149,8 +158,9 @@ def joinTeam(request):
                 #Add team with this name to the DB
                 newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member)
                 newTeamObject.save()
-                addMemberToTeam(member, newTeamObject, currentTeamObject)
+                addMemberToTeam(member, newTeamObject)
                 currentTeam = newTeamObject.name
+                isOnTeam = True
             else:
                 print "Create Team Form Error!"
         elif 'join_team' in request.POST:
@@ -158,12 +168,12 @@ def joinTeam(request):
             if form.is_valid():
                 teamName = form.cleaned_data['team']
                 try:
-                    team = Team.objects.get(name=teamName)
-                    inviteObject = Invite.objects.get(member=member, team=team)
-                    newTeamObject = inviteObject.team
-                    addMemberToTeam(member, newTeamObject, currentTeamObject)
+                    teamObject = Team.objects.get(name=teamName)
+                    inviteObject = Invite.objects.get(member=member, team=teamObject)
+                    addMemberToTeam(member, teamObject)
                     inviteObject.delete()
-                    currentTeam = newTeamObject
+                    currentTeam = teamObject.name
+                    isOnTeam = True
                 except ObjectDoesNotExist:
                     pass
             else:
@@ -185,12 +195,15 @@ def joinTeam(request):
                 pass
         elif 'leave_team' in request.POST:
             leaveTeam(currentTeam, member)
-            currentTeam = None
-            currentTeamObject = None
+            teamMemberList = member.temmemberlist_set.first()
+            if teamMemberList == None:
+                isOnTeam = False
+            else:
+                isOnTeam = True
         else:
             pass #Error!
 
-    context = {'currentTeam': currentTeam}
+    context = {'isOnTeam': isOnTeam}
     #Does this member have an outstanding balance?
     outstandingBalances = None
     try:
@@ -205,9 +218,10 @@ def joinTeam(request):
     else:
         print "You have outstanding balances!" + str(outstandingBalances)
 
-    if currentTeam:
+    if isOnTeam:
         #This user may invite new people to the team
         context['inviteTeamForm'] = InviteTeamForm()
+        context['leaveTeamForm'] = LeaveTeamForm(member=member)
     return HttpResponse(template.render(context, request))
 
 @login_required
@@ -219,7 +233,7 @@ def makePayment(request, charity):
             current_user = request.user
             memberEmail = Member.objects.get(user=current_user).paypal_email
             charityEmail = Charity.objects.get(charityname=charity).paypal_email
-            amount = form.cleaned_data['amount']
+            amount = Balances.objects.get()
             redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
             if redirectURL:
                 return redirect(redirectURL)
@@ -234,7 +248,7 @@ def makePayment(request, charity):
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
     return HttpResponse(template.render(context, request))
 
-@login_required
+
 def confirmPayment(request, etc):
     payerID = request.GET.get('PayerID', '')
     paymentID = request.GET.get('paymentId', '')
