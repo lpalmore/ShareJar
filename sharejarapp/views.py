@@ -19,7 +19,7 @@ from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 
-from team_helpers import addMemberToTeam, generateCode, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
+from team_helpers import addMemberToTeam, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
 from balance_helpers import getBalance, addToBalance
 
 def admin_check(user):
