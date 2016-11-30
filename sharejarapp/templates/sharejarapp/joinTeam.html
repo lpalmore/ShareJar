@@ -13,8 +13,11 @@ Join a Team
 {% endblock %}
 
 {% block content %}
-<div class="styled-select styled-input">
+<div class="addCharity-panel panel panel-default">
+  <div class="panel-body">
+
   {% if createTeamForm %}
+  
    <form action={% url 'joinTeam' %} method="post"\>
       Create a team <br>
       {% csrf_token %}
@@ -30,7 +33,7 @@ Join a Team
      <input type="submit" value="Accept Team Invitation" name="join_team"/>
    </form>
    {% else %}
-   You cannot create or join a new team until your balances are cleared<br><br>
+      <div class="alert alert-danger">You cannot create or join a new team until your balances are cleared</div>
    {% endif %}
 
    {% if currentTeam %}
@@ -48,10 +51,12 @@ Join a Team
    </form>
    {% endif %}
    {% if isCurrentLeader %}
+   <div class="addCharity-panel panel panel-default">
+     <div class="panel-body">
        <form form action={% url 'joinTeam' %} method="post"\>
          {% csrf_token %}
          <div>
-           <label>Edit Team Member Balances</label><br>
+           <h4>Edit Team Member Balances</h4>
            Select Member
             <select name="member" id="MemberDropDown" Height="72px" Width="184px">
                 <option selected disabled style='display: none' value=''></option>
@@ -59,7 +64,6 @@ Join a Team
                   <option Value={{m}}>{{m}}</option>
                 {% endfor %}
             </select>
-            <br />
             Select Charity/Balance
             <select name="charity" id="BalancesDropDown" Height="18px" Width="187px">
                 <option selected disabled style='display: none' value=''></option>
@@ -70,25 +74,30 @@ Join a Team
             Select Amount (negative or positive) <input type="text" name="amount">
             <input type="submit" value="Edit Balance" name="edit_balance"/>
           </div>
-     </form>
-     <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
-       <div>
-         <label>Change Team Leader</label><br>
-         <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
-           <option selected disabled style='display: none' value=''></option>
-           {% for m in membernames %}
-             <option Value={{m}}>{{m}}</option>
-           {% endfor %}
-         </select>
-         <input type="submit" value="Change Leader" name="change_leader"/>
-       </div>
-     </form>
-     <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
-       <label>Change Team Name</label><br>
-       {{changeTeamNameForm}}
-       <input type="submit" value="Change Team Name" name="change_team_name"/>
-     </form>
+       </form>
+       <hr>
+       <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+           <div>
+           <h4>Change Team Leader</h4>
+           <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
+             <option selected disabled style='display: none' value=''></option>
+             {% for m in membernames %}
+               <option Value={{m}}>{{m}}</option>
+             {% endfor %}
+           </select>
+           <input type="submit" value="Change Leader" name="change_leader"/>
+         </div>
+       </form>
+       <hr>
+       <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+         <h4>Change Team Name</h4>
+         {{changeTeamNameForm}}
+         <input type="submit" value="Change Team Name" name="change_team_name"/>
+       </form>
+     </div>
+   </div>
    {% endif %}
+</div>
 </div>
 </div>
 {% endblock %}
