@@ -14,6 +14,7 @@ Join a Team
 
 {% block content %}
 <div class="styled-select styled-input">
+  {% if createTeamForm %}
    <form action={% url 'joinTeam' %} method="post"\>
       Create a team <br>
       {% csrf_token %}
@@ -23,11 +24,14 @@ Join a Team
    <br><br>
 
    <form form action={% url 'joinTeam' %} method="post"\>
-     Enter an invite code to join {% if currentTeam %} another {% else %} a {% endif %} team
+     You have invitations to the following teams
      {% csrf_token %}
      {{joinTeamForm}}
      <input type="submit" value="Accept Team Invitation" name="join_team"/>
    </form>
+   {% else %}
+   You cannot create or join a new team until your balances are cleared<br><br>
+   {% endif %}
 
    {% if currentTeam %}
    <form form action={% url 'joinTeam' %} method="post"\>

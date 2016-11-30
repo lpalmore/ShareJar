@@ -18,13 +18,25 @@
   </div>
 </nav>
 
+Team Stats! <br>
 
-<div class="page-header">
-  <h3>Team Balances</h3>
-</div>
-{% for team in teams %}
-<a href="{% url 'teamStats' team.name %}">{{team.name}}</a>
+{{teamName}}      {{donationTotal}}
+<br> <br>
+{% if currentMemberDonations %}
+Current Members <br>
+{% for donationOb in currentMemberDonations %}
+{{donationOb.member.name}}         {{donationOb.total}}
 <br>
-{%  endfor %}
+{% endfor %}
+{% endif %}
+
+{% if formerMemberDonations %}
+<br><br>
+Former Members <br>
+{% for donationOb in formerMemberDonations %}
+{{donationOb.member.user.username}}:   ${{donationOb.total}}
+<br>
+{% endfor %}
+{% endif %}
 
 {% endblock %}

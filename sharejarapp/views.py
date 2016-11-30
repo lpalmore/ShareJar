@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm, ChangeTeamNameForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
-from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin
+from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin, Donation
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from django.urls import reverse
@@ -18,9 +18,16 @@ from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
+
 from team_helpers import addMemberToTeam, generateCode, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
 from balance_helpers import getBalance, addToBalance
 
+def admin_check(user):
+    try:
+        admin = Admin.objects.get(user=user)
+        return True
+    except ObjectDoesNotExist:
+        return False
 
 def createUser(request):
     #if post request, create the new user
@@ -59,11 +66,47 @@ def home(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def teamStats(request):
-    template = loader.get_template('sharejarapp/teamStats.html')
-    context = {
-    }
-    return HttpResponse(template.render(context, request))
+def teamStats(request, teamName=None):
+    if teamName is None:
+        teams = Team.objects.all()
+        template = loader.get_template('sharejarapp/teamStats.html')
+        context = { 'teams': teams }
+        return HttpResponse(template.render(context, request))
+    else:
+        print "Team name:" + teamName
+        team = None
+        donationTotal = None
+        allMemberDonationList = None
+        currentMembers = None
+        context = {'teamName':teamName}
+        try:
+            team = Team.objects.get(name=teamName)
+            # Sum of every donation made by members (former and present) of this team
+            donationTotal = Donation.objects.filter(team=team).aggregate(Sum('total'))
+            allMemberDonationList = Donation.objects.filter(team=team)
+            currentMembers = TeamMemberList.objects.filter(team=team)
+        except ObjectDoesNotExist:
+            print "\n Failed to find donation information \n"
+
+        if donationTotal['total__sum'] == None:
+            donationTotal = 0
+        else:
+            donationTotal = donationTotal['total__sum']
+
+        context['donationTotal'] = donationTotal
+        if allMemberDonationList and currentMembers:
+            currentMemberDonations = [ob for ob in allMemberDonationList if ob.member in currentMembers]
+            formerMemberDonations = [ob for ob in allMemberDonationList if ob.member not in currentMembers]
+
+            if currentMemberDonations:
+                context['currentMemberDonations'] = currentMemberDonations
+            if formerMemberDonations:
+                context['formerMemberDonations'] = formerMemberDonations
+        else:
+            print "No Donations to show"
+
+        template = loader.get_template('sharejarapp/teamStatsSpecific.html')
+        return HttpResponse(template.render(context, request))
 
 @login_required
 def balance(request):
@@ -123,20 +166,16 @@ def joinTeam(request):
             else:
                 print "Create Team Form Error!"
         elif 'join_team' in request.POST:
-            form = JoinTeamForm(request.POST)
+            form = JoinTeamForm(request.POST, member=member)
             if form.is_valid():
-                code = form.cleaned_data['code']
+                teamName = form.cleaned_data['team']
                 try:
-                    inviteObject = Invite.objects.get(code=form.cleaned_data['code'])
-                    if current_user.email == inviteObject.email:
-                        #Add this user to the team
-                        newTeamObject = inviteObject.team
-                        addMemberToTeam(member, newTeamObject, currentTeamObject)
-                        inviteObject.delete()
-                        currentTeam = newTeamObject
-                    else:
-                        # Code does not match this user's email
-                        pass
+                    team = Team.objects.get(name=teamName)
+                    inviteObject = Invite.objects.get(member=member, team=team)
+                    newTeamObject = inviteObject.team
+                    addMemberToTeam(member, newTeamObject, currentTeamObject)
+                    inviteObject.delete()
+                    currentTeam = newTeamObject
                 except ObjectDoesNotExist:
                     pass
             else:
@@ -146,8 +185,13 @@ def joinTeam(request):
             # Generate code, associate code with email
             form = InviteTeamForm(request.POST)
             if form.is_valid():
-                email = form.cleaned_data['email']
-                inviteObject = Invite.objects.create(team=currentTeamObject, code=generateCode(), email=email)
+                username = form.cleaned_data['username']
+                try:
+                    inviteUser = User.objects.get(username=username)
+                    inviteMember = Member.objects.get(user=inviteUser)
+                    inviteObject = Invite.objects.create(team=currentTeamObject, member=inviteMember)
+                except ObjectDoesNotExist:
+                    pass # Error
                 #Send a notification and code to email provided
             else:
                 pass
@@ -191,7 +235,7 @@ def joinTeam(request):
     if outstandingBalances == None or outstandingBalances == 0:
         #This user may create or join a new team
         context['createTeamForm'] = CreateTeamForm()
-        context['joinTeamForm'] = JoinTeamForm()
+        context['joinTeamForm'] = JoinTeamForm(member=member)
     else:
         print "You have outstanding balances!" + str(outstandingBalances)
 
@@ -221,6 +265,7 @@ def makePayment(request, charity):
         context = {"charity": charity, "paymentForm":MakePaymentForm()}
     return HttpResponse(template.render(context, request))
 
+@login_required
 def confirmPayment(request, etc):
     payerID = request.GET.get('PayerID', '')
     paymentID = request.GET.get('paymentId', '')
@@ -236,7 +281,7 @@ def confirmPayment(request, etc):
     return HttpResponse(template.render(context, request))
 
 
-@login_required
+@user_passes_test(admin_check)
 def addCharity(request):
     current_user = request.user
     message = ""
@@ -258,7 +303,7 @@ def addCharity(request):
     }
     return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def lookupCharity(request):
     hasSearched = False
     if request.method == 'POST':
@@ -282,7 +327,7 @@ def lookupCharity(request):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def editCharity(request, charityName):
     charity = Charity.objects.get(charityname=charityName)
     if request.method == 'POST':
@@ -308,7 +353,7 @@ def editCharity(request, charityName):
     return HttpResponse(template.render(context, request))
 
 
-@login_required
+@user_passes_test(admin_check)
 def removeCharity(request):
     hasSearched = False
     if request.method == 'POST':
@@ -332,7 +377,7 @@ def removeCharity(request):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def confirmRemoveCharity(request, charityName):
     charity = Charity.objects.get(charityname=charityName)
     if request.GET.get('confirm'):
@@ -345,7 +390,7 @@ def confirmRemoveCharity(request, charityName):
     }
     return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def deleteAccount(request):
     if request.method == 'POST':
         form = LookupUserForm(request.POST)
@@ -367,7 +412,7 @@ def deleteAccount(request):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required
+@user_passes_test(admin_check)
 def confirmDeleteAccount(request, username):
     user = User.objects.get(username=username)
     account = Member.objects.get(user=user)
@@ -384,7 +429,7 @@ def confirmDeleteAccount(request, username):
 
 
 
-@login_required
+@user_passes_test(admin_check)
 def editBalance(request):
     template = loader.get_template('sharejarapp/editBalance.html')
     context = {
