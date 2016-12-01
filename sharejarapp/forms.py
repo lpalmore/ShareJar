@@ -58,10 +58,10 @@ class EditCharityForm(forms.Form):
         return paypal_email
 
 class LookupCharityForm(forms.Form):
-    charityname = forms.CharField(max_length=80, label='Charity Name')
+    charityname = forms.CharField(max_length=80, label='Charity Name', widget=forms.TextInput(attrs={'class': 'form-control'}))
 
 class LookupUserForm(forms.Form):
-    username = forms.CharField(max_length=80, label='Username')
+    username = forms.CharField(max_length=80, label='Username', widget=forms.TextInput(attrs={'class': 'form-control'}))
 
 class CharityForm(ModelForm):
 
@@ -80,22 +80,45 @@ class CharityForm(ModelForm):
         return paypal_email
 
 class CreateTeamForm(forms.Form):
-    name = forms.CharField(max_length=80)
-    charity = forms.ModelChoiceField(queryset=Charity.objects.all(), to_field_name="charityname")
-    def clean_name(self):
-        name = self.cleaned_data['name']
-        if Team.objects.filter(name=name).exists():
-            raise forms.ValidationError("That name is already taken- please choose another.")
-        return name
+    name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Team Name'}))
+    def clean(self):
+        cleaned_data = super(CreateTeamForm, self).clean()
+        name = cleaned_data.get('name')
+        # if team already exists raise an error
+        if Team.objects.all().filter(name=name).first() != None:
+            raise forms.ValidationError("Team " + str(name) + " already exists")
+
+class ChangeTeamNameForm(forms.Form):
+    team = forms.CharField(max_length=80)
+    name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter New Team Name'}))
+    def clean(self):
+        cleaned_data = super(ChangeTeamNameForm, self).clean()
+        name = cleaned_data.get('name')
+        # if team already exists raise an error
+        if Team.objects.all().filter(name=name).first() != None:
+            raise forms.ValidationError("Team " + str(name) + " already exists")
+
+class ChangeLeaderForm(forms.Form):
+    NewTeamLeader = forms.CharField(max_length=80)
+    team = forms.CharField(max_length=80)
 
 class InviteTeamForm(forms.Form):
-    # How can I make this match the username field?
-    username = forms.CharField(max_length=80)
+    team = forms.CharField(max_length=80)
+    username = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username to Invite'}))
     def clean_username(self):
         username = self.cleaned_data['username']
         if not User.objects.filter(username=username).exists():
             raise forms.ValidationError("No user with that username exists.")
         return username
+
+class LeaveTeamForm(forms.Form):
+    team = forms.CharField(max_length=80)
+
+class EditBalanceForm(forms.Form):
+    member = forms.CharField(max_length=80)
+    charity = forms.CharField(max_length=80)
+    amount = forms.DecimalField(max_digits=5, decimal_places=2)
+    team = forms.CharField(max_length=80)
 
 class JoinTeamForm(forms.Form):
     team = None

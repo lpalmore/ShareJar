@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 
-
-
 <div class="page-header">
-  <h3>Team Balances</h3>
+  <h3>Team Stats</h3>
 </div>
 {% for team in teams %}
 <a href="{% url 'teamStats' team.name %}">{{team.name}}</a>
 <br>
 {%  endfor %}
+
 {% endblock %}

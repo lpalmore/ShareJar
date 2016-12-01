@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite
-
+from django.contrib.auth.models import User
+from decimal import *
 
 # Deletes the teamObject instance if it has no remaining members or pending invites
 def teamCleanUp(teamObject):
@@ -9,7 +10,7 @@ def teamCleanUp(teamObject):
        print "Deleting team" + teamObject.name
        teamObject.delete()
 
-
+#TODO no longer remove from current team
 #Adds member to specified team. Removes member from current team if there is one
 def addMemberToTeam(member, team=None):
     if not member:
@@ -44,9 +45,14 @@ def leaveTeam(teamName, member):
         #otherwise, select random member
         #TODO: they must choose replacement
         else:
-            team.leader = TeamMemberList.objects.all().filter(team=team).first()
+            #TODO error
+            tml = TeamMemberList.objects.all().filter(team=team).first()
+            team.leader = tml.member.user.username
             team.save()
     return
+
+def isLeader(member):
+    return Team.objects.all().filter(leader=member).first != None
 
 def deleteTeam(teamName):
     team = Team.objects.all().filter(name=teamName).first().delete()
@@ -59,13 +65,56 @@ def editTeamName(teamName, newTeamName):
     team.save()
     return
 
-def transferLeader(teamName, newLeader):
+def transferLeader(teamName, newLeaderName):
     team = Team.objects.all().filter(name=teamName).first()
+    newLeaderUser = User.objects.all().filter(username=newLeaderName).first()
+    newLeader = Member.objects.all().filter(user=newLeaderUser).first()
+    #TODO fix error
     team.leader = newLeader
     team.save()
     return
 
-def getMembers(teamName):
+def getUsernamesInTeam(inTeamName):
+    team = Team.objects.all().filter(name=inTeamName).first()
+    memberlist = TeamMemberList.objects.all().filter(team = team).all()
+    usernames = []
+    for member in memberlist:
+        usernames.append(member.member.user.username)
+    return usernames
+
+def getAllTeamBalances(teamName):
     team = Team.objects.all().filter(name=teamName).first()
-    members = TeamMemberList.objects.all().filter(team = team).members
-    return
+    memberlist = TeamMemberList.objects.all().filter(team = team).all()
+    teamMembers = []
+    for tml in memberlist:
+        teamMembers.append(tml.member)
+    balances = None
+    try:
+        balances = Balances.objects.all().filter(member__in=teamMembers)
+    except ObjectDoesNotExist:
+        pass
+    return balances
+
+def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount):
+    user = User.objects.all().filter(username=edit_balance_member).first()
+    member = Member.objects.all().filter(user=user)
+    charity = Charity.objects.all().filter(charityname = edit_balance_charity).first()
+    edit = Balances.objects.all().filter(member = member, charity=charity).first()
+    cbalance = edit.balance
+    newbalance = cbalance + Decimal(edit_balance_amount)
+    if newbalance < 0:
+        edit.balance = 0
+        edit.save()
+        return True
+    elif newbalance >=0:
+        edit.balance = newbalance
+        edit.save()
+        return True
+    return False
+
+def GetTeams(teamMember):
+    teamName = TeamMemberList.objects.all().filter(member=teamMember)
+    teams =[]
+    for t in teamName:
+        teams.append(t.team)
+    return teams

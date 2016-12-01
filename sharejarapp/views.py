@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm, LeaveTeamForm, AddTeamBalanceForm
+from forms import *
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin, Donation
@@ -18,7 +18,7 @@ from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
-from team_helpers import addMemberToTeam, leaveTeam
+from team_helpers import addMemberToTeam, GetTeams, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
 from balance_helpers import getAllBalance, getTeamBalance, addToTeamBalance, addToBalance
 
 def admin_check(user):
@@ -83,7 +83,8 @@ def teamStats(request, teamName=None):
             # Sum of every donation made by members (former and present) of this team
             donationTotal = Donation.objects.filter(team=team).aggregate(Sum('total'))
             allMemberDonationList = Donation.objects.filter(team=team)
-            currentMembers = TeamMemberList.objects.filter(team=team)
+            currentMembers = TeamMemberList.objects.filter(team=team).values_list('member', flat=True)
+            currentMembers = Member.objects.filter(pk__in=currentMembers).all()
         except ObjectDoesNotExist:
             print "\n Failed to find donation information \n"
 
@@ -94,6 +95,8 @@ def teamStats(request, teamName=None):
 
         context['donationTotal'] = donationTotal
         if allMemberDonationList and currentMembers:
+            print "\n\n\n WTF"
+            print currentMembers
             currentMemberDonations = [ob for ob in allMemberDonationList if ob.member in currentMembers]
             formerMemberDonations = [ob for ob in allMemberDonationList if ob.member not in currentMembers]
 
@@ -140,41 +143,39 @@ def balance(request):
 
 @login_required
 def joinTeam(request):
+    context = {}
     template = loader.get_template('sharejarapp/joinTeam.html')
     current_user = request.user
     member = Member.objects.get(user=current_user)
-    currentTeam = None
-    teamMemberList = member.teammemberlist_set.first()
-    isOnTeam = False
-    if not teamMemberList == None:
-        currentTeamObject = teamMemberList.team
-        currentTeam = currentTeamObject.name
-        isOnTeam = True
+    context['createTeamForm'] = CreateTeamForm()
+    context['inviteTeamForm'] = InviteTeamForm()
+    context['changeTeamNameForm'] = ChangeTeamNameForm()
+    context['joinTeamForm'] = JoinTeamForm(member=member)
+
+    #process all post requests
     if request.method == 'POST':
         isOnTeam = request.isOnTeam
         #Determine which form was submitted
         if 'create_team' in request.POST:
-            form = CreateTeamForm(request.POST)
-            if form.is_valid():
+            createTeamForm = CreateTeamForm(request.POST)
+            print createTeamForm
+            if createTeamForm.is_valid():
                 #Add team with this name to the DB
-                newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member, charity=form.cleaned_data['charity'])
+                newTeamObject = Team.objects.create(name=createTeamForm.cleaned_data['name'], leader=member)
                 newTeamObject.save()
-                addMemberToTeam(member, newTeamObject)
-                currentTeam = newTeamObject.name
-                isOnTeam = True
+                addMemberToTeam(member, newTeamObject, None)
             else:
-                print "Create Team Form Error!"
+                context['createTeamForm'] = createTeamForm
         elif 'join_team' in request.POST:
             form = JoinTeamForm(request.POST, member=member)
             if form.is_valid():
                 teamName = form.cleaned_data['team']
                 try:
-                    teamObject = Team.objects.get(name=teamName)
-                    inviteObject = Invite.objects.get(member=member, team=teamObject)
-                    addMemberToTeam(member, teamObject)
+                    team = Team.objects.get(name=teamName)
+                    inviteObject = Invite.objects.get(member=member, team=team)
+                    newTeamObject = inviteObject.team
+                    addMemberToTeam(member, newTeamObject, None)
                     inviteObject.delete()
-                    currentTeam = teamObject.name
-                    isOnTeam = True
                 except ObjectDoesNotExist:
                     pass
             else:
@@ -184,27 +185,67 @@ def joinTeam(request):
             # Generate code, associate code with email
             form = InviteTeamForm(request.POST)
             if form.is_valid():
+                team = form.cleaned_data['team']
                 username = form.cleaned_data['username']
                 try:
                     inviteUser = User.objects.get(username=username)
                     inviteMember = Member.objects.get(user=inviteUser)
-                    inviteObject = Invite.objects.create(team=currentTeamObject, member=inviteMember)
+                    #TODO invite form needs to send team
+                    inviteToTeam = Team.objects.get(name=team)
+                    inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
                 except ObjectDoesNotExist:
                     pass # Error
                 #Send a notification and code to email provided
             else:
                 pass
         elif 'leave_team' in request.POST:
-            leaveTeam(currentTeam, member)
-            teamMemberList = member.temmemberlist_set.first()
-            if teamMemberList == None:
-                isOnTeam = False
+            leaveTeamForm = LeaveTeamForm(request.POST)
+            if leaveTeamForm.is_valid():
+                teamToLeave = leaveTeamForm.cleaned_data['team']
+                leaveTeam(teamToLeave, member)
+        elif 'edit_balance' in request.POST:
+            editBalanceForm = EditBalanceForm(request.POST)
+            print editBalanceForm
+            if editBalanceForm.is_valid():
+                edit_balance_member = editBalanceForm.cleaned_data['member']
+                edit_balance_charity = request.POST['charity'].split('_')[1]
+                edit_balance_amount = request.POST['amount']
+                EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount)
+        elif 'change_leader' in request.POST:
+            changeLeaderForm = ChangeLeaderForm()
+            if changeLeaderForm.is_valid():
+                newLeader = changeLeaderForm.cleaned_data['NewTeamLeader']
+                teamToChange = changeLeaderForm.cleaned_data['team']
+                transferLeader(teamToChange, newLeader)
+        elif 'change_team_name' in request.POST:
+            formCTN = ChangeTeamNameForm(request.POST)
+            if formCTN.is_valid():
+                newTeamName = formCTN.cleaned_data['name']
+                currentTeam = formCTN.cleaned_data['team']
+                editTeamName(currentTeam, newTeamName)
             else:
-                isOnTeam = True
+                pass
         else:
             pass #Error!
 
-    context = {'isOnTeam': isOnTeam}
+    #retrieve teams information
+    teams = GetTeams(member)
+    TeamsInfo = []
+    for t in teams:
+        teamInfo = {}
+        if t.leader == member:
+            membernames = getUsernamesInTeam(t)
+            teamInfo['membernames'] = membernames
+            memberbalances = getAllTeamBalances(t)
+            teamInfo['memberbalances'] = memberbalances
+            #add choose charity here
+        TeamsInfo.append((t, teamInfo))
+    context["TeamsInfo"] = TeamsInfo
+    context["hasTeam"] = (len(teams) != 0)
+    context["username"] = member.user.username
+
+
+    ''' Do we still want to not allow people with outstandng balances from joining a team?
     #Does this member have an outstanding balance?
     outstandingBalances = None
     try:
@@ -215,14 +256,12 @@ def joinTeam(request):
     if outstandingBalances == None or outstandingBalances == 0:
         #This user may create or join a new team
         context['createTeamForm'] = CreateTeamForm()
+        context['inviteTeamForm'] = InviteTeamForm()
+        context['changeTeamNameForm'] = ChangeTeamNameForm()
         context['joinTeamForm'] = JoinTeamForm(member=member)
     else:
         print "You have outstanding balances!" + str(outstandingBalances)
-
-    if isOnTeam:
-        #This user may invite new people to the team
-        context['inviteTeamForm'] = InviteTeamForm()
-        context['leaveTeamForm'] = LeaveTeamForm(member=member)
+    '''
     return HttpResponse(template.render(context, request))
 
 @login_required
