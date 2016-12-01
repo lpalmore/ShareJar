@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite
 from django.contrib.auth.models import User
+from decimal import *
 
 # Deletes the teamObject instance if it has no remaining members or pending invites
 def teamCleanUp(teamObject):
@@ -94,11 +95,16 @@ def getAllTeamBalances(teamName):
     return balances
 
 def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount):
-    edit = Balances.objects.all().filter(member = edit_balance_member, charity=edit_balance_charity)
+    user = User.objects.all().filter(username=edit_balance_member).first()
+    member = Member.objects.all().filter(user=user)
+    charity = Charity.objects.all().filter(charityname = edit_balance_charity).first()
+    edit = Balances.objects.all().filter(member = member, charity=charity).first()
     cbalance = edit.balance
-    newbalance = cbalance+edit_balance_amount
+    newbalance = cbalance + Decimal(edit_balance_amount)
     if newbalance < 0:
-        return False
+        edit.balance = 0
+        edit.save()
+        return True
     elif newbalance >=0:
         edit.balance = newbalance
         edit.save()

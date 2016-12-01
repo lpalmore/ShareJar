@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm, ChangeTeamNameForm
+from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm, ChangeTeamNameForm, LeaveTeamForm, EditBalanceForm, ChangeLeaderForm
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin, Donation
@@ -141,18 +141,24 @@ def joinTeam(request):
     current_user = request.user
     member = Member.objects.get(user=current_user)
 
+    context['createTeamForm'] = CreateTeamForm()
+    context['inviteTeamForm'] = InviteTeamForm()
+    context['changeTeamNameForm'] = ChangeTeamNameForm()
+    context['joinTeamForm'] = JoinTeamForm(member=member)
+
     #process all post requests
     if request.method == 'POST':
         #Determine which form was submitted
         if 'create_team' in request.POST:
-            form = CreateTeamForm(request.POST)
-            if form.is_valid():
+            createTeamForm = CreateTeamForm(request.POST)
+            print createTeamForm
+            if createTeamForm.is_valid():
                 #Add team with this name to the DB
-                newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member)
+                newTeamObject = Team.objects.create(name=createTeamForm.cleaned_data['name'], leader=member)
                 newTeamObject.save()
                 addMemberToTeam(member, newTeamObject, None)
             else:
-                print "Create Team Form Error!"
+                context['createTeamForm'] = createTeamForm
         elif 'join_team' in request.POST:
             form = JoinTeamForm(request.POST, member=member)
             if form.is_valid():
@@ -186,23 +192,24 @@ def joinTeam(request):
             else:
                 pass
         elif 'leave_team' in request.POST:
-            #TODO form needs to send team
-            teamToLeave = request.POST['team']
-            leaveTeam(teamToLeave, member)
+            leaveTeamForm = LeaveTeamForm(request.POST)
+            if leaveTeamForm.is_valid():
+                teamToLeave = leaveTeamForm.cleaned_data['team']
+                leaveTeam(teamToLeave, member)
         elif 'edit_balance' in request.POST:
-            edit_balance_member, edit_balance_charity, edit_balance_amount = None, None, None
-            try:
-                edit_balance_member = request.POST['member']
+            editBalanceForm = EditBalanceForm(request.POST)
+            print editBalanceForm
+            if editBalanceForm.is_valid():
+                edit_balance_member = editBalanceForm.cleaned_data['member']
                 edit_balance_charity = request.POST['charity'].split('_')[1]
                 edit_balance_amount = request.POST['amount']
                 EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount)
-            except:
-                pass
         elif 'change_leader' in request.POST:
-            newLeader = request.POST['NewTeamLeader']
-            #TODO form needs to send team
-            teamToChange = request.POST['team']
-            transferLeader(teamToChange, newLeader)
+            changeLeaderForm = ChangeLeaderForm()
+            if changeLeaderForm.is_valid():
+                newLeader = changeLeaderForm.cleaned_data['NewTeamLeader']
+                teamToChange = changeLeaderForm.cleaned_data['team']
+                transferLeader(teamToChange, newLeader)
         elif 'change_team_name' in request.POST:
             formCTN = ChangeTeamNameForm(request.POST)
             if formCTN.is_valid():
@@ -230,6 +237,8 @@ def joinTeam(request):
     context["hasTeam"] = (len(teams) != 0)
     context["username"] = member.user.username
 
+
+    ''' Do we still want to not allow people with outstandng balances from joining a team?
     #Does this member have an outstanding balance?
     outstandingBalances = None
     try:
@@ -245,6 +254,7 @@ def joinTeam(request):
         context['joinTeamForm'] = JoinTeamForm(member=member)
     else:
         print "You have outstanding balances!" + str(outstandingBalances)
+    '''
 
     return HttpResponse(template.render(context, request))
 

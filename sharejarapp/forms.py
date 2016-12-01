@@ -72,15 +72,40 @@ class CharityForm(ModelForm):
 
 class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Team Name'}))
+    def clean(self):
+        cleaned_data = super(CreateTeamForm, self).clean()
+        name = cleaned_data.get('name')
+        # if team already exists raise an error
+        if Team.objects.all().filter(name=name).first() != None:
+            raise forms.ValidationError("Team " + str(name) + " already exists")
 
 class ChangeTeamNameForm(forms.Form):
-    team = forms.CharField(max_length=80, required=False)
+    team = forms.CharField(max_length=80)
     name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter New Team Name'}))
+    def clean(self):
+        cleaned_data = super(ChangeTeamNameForm, self).clean()
+        name = cleaned_data.get('name')
+        # if team already exists raise an error
+        if Team.objects.all().filter(name=name).first() != None:
+            raise forms.ValidationError("Team " + str(name) + " already exists")
+
+class ChangeLeaderForm(forms.Form):
+    NewTeamLeader = forms.CharField(max_length=80)
+    team = forms.CharField(max_length=80)
 
 class InviteTeamForm(forms.Form):
     # How can I make this match the username field?
     team = forms.CharField(max_length=80)
     username = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username to Invite'}))
+
+class LeaveTeamForm(forms.Form):
+    team = forms.CharField(max_length=80)
+
+class EditBalanceForm(forms.Form):
+    member = forms.CharField(max_length=80)
+    charity = forms.CharField(max_length=80)
+    amount = forms.DecimalField(max_digits=5, decimal_places=2)
+    team = forms.CharField(max_length=80)
 
 class JoinTeamForm(forms.Form):
     team = None
