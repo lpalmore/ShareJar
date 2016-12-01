@@ -234,6 +234,8 @@ def joinTeam(request):
     if outstandingBalances == None or outstandingBalances == 0:
         #This user may create or join a new team
         context['createTeamForm'] = CreateTeamForm()
+        context['inviteTeamForm'] = InviteTeamForm()
+        context['changeTeamNameForm'] = ChangeTeamNameForm()
         context['joinTeamForm'] = JoinTeamForm(member=member)
     else:
         print "You have outstanding balances!" + str(outstandingBalances)

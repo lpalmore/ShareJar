@@ -74,11 +74,11 @@ class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Team Name'}))
 
 class ChangeTeamNameForm(forms.Form):
-    name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter New Team Name'}))
 
 class InviteTeamForm(forms.Form):
     # How can I make this match the username field?
-    username = forms.CharField(max_length=80)
+    username = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username to Invite'}))
 
 class JoinTeamForm(forms.Form):
     team = None

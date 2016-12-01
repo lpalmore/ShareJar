@@ -14,25 +14,36 @@
            {% for t, Info in TeamsInfo %}
            <div class="addCharity-panel panel panel-default">
              <div class="panel-body">
-               <h4>Team: {{ t.name }}</h4>
+               <h4>Team: {{ t.name }}  </h4>
                <!--Invite to team-->
                <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
-                 {{inviteTeamForm}}
-                 <br>
-                 <input class="btn btn-default" type="submit" value="Invite user to team" name="invite_member"/>
-                 <br><br>
+                 {{inviteTeamForm.username}}
+                 <input class="btn btn-default" type="submit" value="Invite" name="invite_member"/>
                </form>
-               <!--Leave Team-->
-               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>
-                 {% csrf_token %}
-                 <input class="btn btn-default" type="submit" value="Leave Team" name="leave_team" />
-               </form>
+             </br>
                <!--Team Leader Block-->
                {% if t.leader.user.username == username %}
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                 {{changeTeamNameForm.name}}
+                 <input class="btn btn-default" type="submit" value="Change Team Name" name="change_team_name"/>
+               </form>
+               <br>
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                   <div>
+                   <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
+                     <label>
+                     <option selected disabled style='display: none' value=''></option>
+                     {% for m in membernames %}
+                       <option Value={{m}}>{{m}}</option>
+                     {% endfor %}
+                   </select>
+                   <input class="btn btn-default" type="submit" value="Change Leader" name="change_leader"/>
+                 </div>
+               </form>
+               <br>
                    <form class="form-inline" action={% url 'joinTeam' %} method="post"\>
                      {% csrf_token %}
                      <div>
-                       <h4>Edit Team Member Balances</h4>
                         <select class="form-control" name="member" id="MemberDropDown" Height="72px" Width="184px">
                             <option selected hidden >Select A Member</option>
                             {% for m in membernames %}
@@ -52,27 +63,14 @@
                         <input class="btn btn-default" type="submit" value="Edit Balance" name="edit_balance"/>
                       </div>
                    </form>
-                   <hr>
-                   <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
-                       <div>
-                       <h4>Change Team Leader</h4>
-                       <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
-                         <option selected disabled style='display: none' value=''></option>
-                         {% for m in membernames %}
-                           <option Value={{m}}>{{m}}</option>
-                         {% endfor %}
-                       </select>
-                       <input class="btn btn-default" type="submit" value="Change Leader" name="change_leader"/>
-                     </div>
-                   </form>
-                   <hr>
-                   <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
-                     <h4>Change Team Name</h4>
-                     {{changeTeamNameForm}}
-                     <input class="btn btn-default" type="submit" value="Change Team Name" name="change_team_name"/>
-                   </form>
                {% endif %}
                <!--End of Team Leader Block-->
+               </br>
+               <!--Leave Team-->
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                 <input class="btn btn-default" type="submit" value="Leave Team" name="leave_team" />
+               </form>
+
              </div>
            </div>
            {% endfor %}
