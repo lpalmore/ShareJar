@@ -141,22 +141,6 @@ def joinTeam(request):
     current_user = request.user
     member = Member.objects.get(user=current_user)
 
-    #retrieve teams information
-    teams = GetTeams(member)
-    TeamsInfo = []
-    for t in teams:
-        teamInfo = {}
-        if t.leader == member:
-            membernames = getUsernamesInTeam(t)
-            teamInfo['membernames'] = membernames
-            memberbalances = getAllTeamBalances(t)
-            teamInfo['memberbalances'] = memberbalances
-            #add choose charity here
-        TeamsInfo.append((t, teamInfo))
-    context["TeamsInfo"] = TeamsInfo
-    context["hasTeam"] = (len(teams) != 0)
-    context["username"] = member.user.username
-
     #process all post requests
     if request.method == 'POST':
         #Determine which form was submitted
@@ -229,6 +213,22 @@ def joinTeam(request):
                 pass
         else:
             pass #Error!
+
+    #retrieve teams information
+    teams = GetTeams(member)
+    TeamsInfo = []
+    for t in teams:
+        teamInfo = {}
+        if t.leader == member:
+            membernames = getUsernamesInTeam(t)
+            teamInfo['membernames'] = membernames
+            memberbalances = getAllTeamBalances(t)
+            teamInfo['memberbalances'] = memberbalances
+            #add choose charity here
+        TeamsInfo.append((t, teamInfo))
+    context["TeamsInfo"] = TeamsInfo
+    context["hasTeam"] = (len(teams) != 0)
+    context["username"] = member.user.username
 
     #Does this member have an outstanding balance?
     outstandingBalances = None
