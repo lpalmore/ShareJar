@@ -4,7 +4,7 @@
 # API used: /v1/payments/payment
 from paypalrestsdk import Payment
 from django.core.exceptions import ObjectDoesNotExist
-from models import Balances, Member, Charity, Team
+from models import Balances, Member, Charity, Team, Donation
 from decimal import Decimal
 import logging
 import paypalrestsdk
@@ -101,27 +101,42 @@ def executePayment(payerID, paymentID, member, teamName):
     success = payment.execute({"payer_id": payerID})
     if success:
         print "Successfully executed payment"
+        # Do the stuff on success only
+        try:
+            #TODO: put a Unique contraint on paypal email for Char
+            charity = Charity.objects.get(paypal_email=payment.transactions[0].payee.email)
+        except ObjectDoesNotExist:
+            pass
+        if not teamName == "":
+            team = Team.objects.get(name=teamName)
+            try:
+                d = Donation.objects.get(member=member, charity=charity, team=team)
+            except ObjectDoesNotExist:
+                # Not such donation row exists. Create a new one
+                d = Donation.objects.create(member=member, charity=charity, team=team)
+            try:
+                b = Balances.objects.get(member=member, charity=charity, team=team)
+            except ObjectDoesNotExist:
+                pass
+        else:
+            try:
+                d = Donation.objects.get(member=member, charity=charity)
+            except ObjectDoesNotExist:
+                # Not such donation row exists. Create a new one
+                d = Donation.objects.create(member=member, charity=charity)
+            try:
+                b = Balances.objects.get(member=member, charity=charity, team=None)
+            except ObjectDoesNotExist:
+                pass
+        total = Decimal(payment.transactions[0].amount.total)
+        b.balance -= total
+        d.total += total
+        d.save()
+        if b.balance <= 0:
+            b.delete()
+        else:
+            b.save()
     else:
         print (payment.error)
-    try:
-        charity = Charity.objects.all().filter(paypal_email=payment.transactions[0].payee.email)
-    except ObjectDoesNotExist:
-        pass
-    if not teamName == "":
-        team = Team.objects.all().filter(name=teamName)
-        try:
-            b = Balances.objects.get(member=member, charity=charity, team=team)
-        except ObjectDoesNotExist:
-            pass
-    else:
-        try:
-            b = Balances.objects.get(member=member, charity=charity, team=None)
-        except ObjectDoesNotExist:
-            pass
-    total = Decimal(payment.transactions[0].amount.total)
-    b.balance -= total
-    if b.balance <= 0:
-        b.delete()
-    else:
-        b.save()
+
     return success

@@ -56,7 +56,7 @@ class Donation(models.Model):
 	member = models.ForeignKey(Member)
 	charity = models.ForeignKey(Charity)
 	# Need to know which team the user was one when the donation was made
-	team = models.ForeignKey(Team)
+	team = models.ForeignKey(Team, null=True)
 	# Should match the characteristics of "balance" in "Balances"
 	total = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 
