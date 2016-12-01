@@ -4,12 +4,15 @@
 
 {% block content %}
 
-{% block title %}Balances{% endblock %}
-
+<div class="container">
+<div class="page-header">
+  <h3>Balances</h3>
+</div>
+<h4>Add to your personal balance for a charity of your choice...</h4>
 <div class="addCharity-panel panel panel-default">
   <div class="panel-body">
     <form action="balance" method="POST"> {% csrf_token %}
-      {{ form }}
+      {{ directform }}
       <input class="btn btn-default" type="submit" value="submit" />
     </form>
     <div class="stats-text">
@@ -23,8 +26,25 @@
     {% endif %}
     </div>
   </div>
-
-
+</div>
+<h4>...or add to your balance for one of your teams.</h4>
+<div class="teamDonation-panel panel panel-default">
+  <div class="panel-body">
+    <form action="balance" method="POST"> {% csrf_token %}
+      {{ teamform }}
+      <input class="btn btn-default" type="submit" value="submit" />
+    </form>
+    <div class="stats-text">
+    {% if teambalances %}
+      {% for balance in teambalances %}
+         <label for="balance">${{balance.balance}} {{balance.team}}</label>
+         <a href="{% url 'makePayment' balance.charity balance.team %}" class="btn btn-default">Make Payment</a>
+      {%  endfor %}
+    {% else %}
+        <label for="balance">No team balances to display</label>
+    {% endif %}
+    </div>
+  </div>
 </div>
 </div>
 {% endblock %}

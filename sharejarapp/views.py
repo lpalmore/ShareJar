@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from forms import UserForm, AddBalanceForm, CharityForm, CreateTeamForm, JoinTeamForm, InviteTeamForm, LookupCharityForm, EditCharityForm, LookupUserForm, ChangeTeamNameForm, LeaveTeamForm, EditBalanceForm, ChangeLeaderForm
+from forms import *
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin, Donation
@@ -18,10 +18,8 @@ from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
-
-
 from team_helpers import addMemberToTeam, GetTeams, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
-from balance_helpers import getBalance, addToBalance
+from balance_helpers import getAllBalance, getTeamBalance, addToTeamBalance, addToBalance
 
 def admin_check(user):
     try:
@@ -115,22 +113,31 @@ def teamStats(request, teamName=None):
 @login_required
 def balance(request):
     current_user = request.user
-
+    member = Member.objects.get(user=current_user)
     if request.method == "POST":
-        member = Member.objects.get(user=current_user)
-        form = AddBalanceForm(request.POST)
-        if form.is_valid():
-            increment = form.cleaned_data['increment']
-            charityname= form.cleaned_data['charity']
+        directform = AddBalanceForm(request.POST)
+        teamform = AddTeamBalanceForm(request.POST, member=member)
+        if directform.is_valid():
+            increment = directform.cleaned_data['increment']
+            charityname= directform.cleaned_data['charity']
             addToBalance(member, charityname, increment)
+        if teamform.is_valid():
+            increment = teamform.cleaned_data['increment']
+            teamMemberList = teamform.cleaned_data['team']
+            team = teamMemberList.team
+            addToTeamBalance(member, team, increment)
     #get balance info and create add balance form
-    balances = getBalance(current_user)
-    form = AddBalanceForm()
+    balances = getAllBalance(current_user)
+    teambalances = getTeamBalance(current_user)
+    directform = AddBalanceForm()
+    teamform = AddTeamBalanceForm(member=member)
 
     template = loader.get_template('sharejarapp/balance.html')
     context = {
         'balances': balances,
-        'form': form
+        'directform': directform,
+        'teambalances': teambalances,
+        'teamform': teamform
     }
     return HttpResponse(template.render(context, request))
 
@@ -140,7 +147,6 @@ def joinTeam(request):
     template = loader.get_template('sharejarapp/joinTeam.html')
     current_user = request.user
     member = Member.objects.get(user=current_user)
-
     context['createTeamForm'] = CreateTeamForm()
     context['inviteTeamForm'] = InviteTeamForm()
     context['changeTeamNameForm'] = ChangeTeamNameForm()
@@ -148,6 +154,7 @@ def joinTeam(request):
 
     #process all post requests
     if request.method == 'POST':
+        isOnTeam = request.isOnTeam
         #Determine which form was submitted
         if 'create_team' in request.POST:
             createTeamForm = CreateTeamForm(request.POST)
@@ -255,12 +262,21 @@ def joinTeam(request):
     else:
         print "You have outstanding balances!" + str(outstandingBalances)
     '''
-
     return HttpResponse(template.render(context, request))
 
 @login_required
-def makePayment(request, charity):
+def makePayment(request, charity, team=None):
     # TODO Actually pull the balance from the model
+    print "makePayment -----------"
+    print charity
+    print team
+    member = Member.objects.get(user=request.user)
+    if team:
+        teamObj = Team.objects.get(name=team)
+        balance = Balances.objects.get(member=member, team=teamObj)
+    else:
+        charityObj = Charity.objects.get(charityname=charity)
+        balance = Balances.objects.get(member=member, charity=charityObj, team=None)
     if request.method == 'POST':
         form = MakePaymentForm(request.POST)
         if form.is_valid():
@@ -268,29 +284,36 @@ def makePayment(request, charity):
             memberEmail = Member.objects.get(user=current_user).paypal_email
             charityEmail = Charity.objects.get(charityname=charity).paypal_email
             amount = form.cleaned_data['amount']
-            redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
+            if team:  
+                redirectURL = createPayment(memberEmail, amount, charity, charityEmail, team)
+            else:
+                redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
             if redirectURL:
                 return redirect(redirectURL)
             else:
-                return redirect('/addBalance/')
+                return redirect('/balances/')
                 pass
         else:
             # Form data isn't valid. Notify the user
             pass
     else:
         template = loader.get_template('sharejarapp/makepayment.html')
-        context = {"charity": charity, "paymentForm":MakePaymentForm()}
+        context = {"charity": charity, "balance": balance, "paymentForm":MakePaymentForm()}
+        if team:
+            context['team'] = team
     return HttpResponse(template.render(context, request))
 
-@login_required
+@login_required(login_url='/login')
 def confirmPayment(request, etc):
+    print 'confirmPayment----------------'
+    teamName = etc[1:]
     payerID = request.GET.get('PayerID', '')
     paymentID = request.GET.get('paymentId', '')
     print 'payerID: ' + payerID
     print 'paymentID: ' + paymentID
     current_user = request.user
     member = Member.objects.get(user=current_user)
-    success = executePayment(payerID, paymentID, member)
+    success = executePayment(payerID, paymentID, member, teamName)
     template = loader.get_template('sharejarapp/confirmPayment.html')
     context = {
         'success': success

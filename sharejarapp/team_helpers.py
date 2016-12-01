@@ -12,20 +12,19 @@ def teamCleanUp(teamObject):
 
 #TODO no longer remove from current team
 #Adds member to specified team. Removes member from current team if there is one
-def addMemberToTeam(member, newTeamObject, currentTeamObject=None):
+def addMemberToTeam(member, team=None):
     if not member:
         return
-    if currentTeamObject:
+    try:
         #Change team list entry for this member to the new team
-        listObject = TeamMemberList.objects.get(member=member, team=currentTeamObject)
-        listObject.team = newTeamObject;
-        listObject.save()
-        teamCleanUp(currentTeamObject)
-    else:
+        teamList = TeamMemberList.objects.get(team=team)
+        teamList.members.add(member)
+        teamList.save()
+    except ObjectDoesNotExist:
         #Add member to new team
-        listObject = TeamMemberList.objects.create(member=member, team=newTeamObject)
-        listObject.save()
-
+        teamList = TeamMemberList.objects.create(team=team)
+        teamList.members.add(member)
+        teamList.save()
 '''
     teamName: String
     member: member id of user
@@ -34,12 +33,13 @@ def leaveTeam(teamName, member):
     team = Team.objects.all().filter(name=teamName).first()
 
     #remove user from TeamMemberList
-    teamMembers = TeamMemberList.objects.all().filter(team=team, member=member).all().delete()
+    teamMembers = TeamMemberList.objects.all().filter(team=team).first()
+    teamMembers.members.remove(member)
 
     #if user is leader, update team leader
     if team.leader == member:
         #if they are the only member, delete team
-        if not TeamMemberList.objects.all().filter(team=team).all().exists():
+        if teamMembers.members == None:
             print "deleteing team"
             deleteTeam(teamName)
         #otherwise, select random member
@@ -55,7 +55,8 @@ def isLeader(member):
     return Team.objects.all().filter(leader=member).first != None
 
 def deleteTeam(teamName):
-    team = Team.objects.all().filter(name=teamName).first().delete() #deleting team
+    team = Team.objects.all().filter(name=teamName).first().delete()
+    teamMembers = TeamMemberList.objects.all().filter(team=team).delete() #deleting team
     return
 
 def editTeamName(teamName, newTeamName):

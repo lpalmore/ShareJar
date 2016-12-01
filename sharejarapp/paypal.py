@@ -4,7 +4,7 @@
 # API used: /v1/payments/payment
 from paypalrestsdk import Payment
 from django.core.exceptions import ObjectDoesNotExist
-from models import Balances, Member, Charity
+from models import Balances, Member, Charity, Team, Donation
 from decimal import Decimal
 import logging
 import paypalrestsdk
@@ -15,10 +15,22 @@ paypalrestsdk.configure({
 
 logging.basicConfig(level=logging.INFO)
 
-def initPayment(userEmail, amount, charityName, charityEmail):
+def initPayment(userEmail, amount, charityName, charityEmail, teamName=None):
     # Payment
     # A Payment Resource; create one using
     # the above types and intent as 'sale'
+    print "initPayment ------------------"
+    print charityName
+    print teamName
+    urlCharityName = charityName.replace(" ", "%20")
+    returnURL = ""
+    if teamName:
+        urlTeamName = teamName.replace(" ", "%20")
+        returnURL = 'http://localhost:8000/confirmPayment/%s'%urlTeamName
+    else:
+        returnURL = 'http://localhost:8000/confirmPayment'
+    print returnURL
+    print charityName
     payment = Payment({
         "intent": "sale",
         # Payer
@@ -32,8 +44,8 @@ def initPayment(userEmail, amount, charityName, charityEmail):
 
         # Redirect URLs: TODO: These can't stay localhost forever
         "redirect_urls": {
-            "return_url": 'http://localhost:8000/confirmPayment',#"http://localhost:3000/payment/execute",
-            "cancel_url": 'http://localhost:8000/makePayment/%s'%(charityName)},#"http://localhost:3000/"},
+            "return_url": returnURL,#"http://localhost:3000/payment/execute",
+            "cancel_url": 'http://localhost:8000/makePayment/%s'%urlCharityName},#"http://localhost:3000/"},
 
         # Transaction
         # A transaction defines the contract of a
@@ -46,7 +58,7 @@ def initPayment(userEmail, amount, charityName, charityEmail):
             # ItemList
             "item_list": {
                 "items": [{
-                    "name": "11/11 Item",
+                    "name": "This is a test of login_required",
                     "sku": "item",
                     "price": amount,
                     "currency": "USD",
@@ -61,9 +73,9 @@ def initPayment(userEmail, amount, charityName, charityEmail):
     return payment
 
 
-def createPayment(userEmail, amount, charityName, charityEmail):
+def createPayment(userEmail, amount, charityName, charityEmail, teamName=None):
     # Create Payment and return status
-    payment = initPayment(userEmail, amount, charityName, charityEmail)
+    payment = initPayment(userEmail, amount, charityName, charityEmail, teamName)
     if payment.create():
         print("Payment[%s] created successfully" % (payment.id))
         # Redirect the user to given approval url
@@ -79,23 +91,52 @@ def createPayment(userEmail, amount, charityName, charityEmail):
         print(payment.error)
         return None
 
-def executePayment(payerID, paymentID, member):
-    payment = Payment.find(paymentID);
+def executePayment(payerID, paymentID, member, teamName):
+    payment = Payment.find(paymentID)
+    paymentEmail = payment.payer.payer_info.email
+    paymentMember = Member.objects.get(paypal_email=paymentEmail)
+    if not member == paymentMember:
+        print 'Error: logged in user is not user who created payment. Payment will not be executed.'
+        return False
     success = payment.execute({"payer_id": payerID})
     if success:
         print "Successfully executed payment"
+        # Do the stuff on success only
+        try:
+            #TODO: put a Unique contraint on paypal email for Char
+            charity = Charity.objects.get(paypal_email=payment.transactions[0].payee.email)
+        except ObjectDoesNotExist:
+            pass
+        if not teamName == "":
+            team = Team.objects.get(name=teamName)
+            try:
+                d = Donation.objects.get(member=member, charity=charity, team=team)
+            except ObjectDoesNotExist:
+                # Not such donation row exists. Create a new one
+                d = Donation.objects.create(member=member, charity=charity, team=team)
+            try:
+                b = Balances.objects.get(member=member, charity=charity, team=team)
+            except ObjectDoesNotExist:
+                pass
+        else:
+            try:
+                d = Donation.objects.get(member=member, charity=charity)
+            except ObjectDoesNotExist:
+                # Not such donation row exists. Create a new one
+                d = Donation.objects.create(member=member, charity=charity)
+            try:
+                b = Balances.objects.get(member=member, charity=charity, team=None)
+            except ObjectDoesNotExist:
+                pass
+        total = Decimal(payment.transactions[0].amount.total)
+        b.balance -= total
+        d.total += total
+        d.save()
+        if b.balance <= 0:
+            b.delete()
+        else:
+            b.save()
     else:
         print (payment.error)
-    try:
-        charity = Charity.objects.all().filter(paypal_email=payment.transactions[0].payee.email)
-    except ObjectDoesNotExist:
-        pass
-    try:
-        balances = Balances.objects.all().filter(member=member, charity=charity)
-    except ObjectDoesNotExist:
-        pass
-    b = balances.first()
-    total = Decimal(payment.transactions[0].amount.total)
-    b.balance -= total
-    b.save()
+
     return success

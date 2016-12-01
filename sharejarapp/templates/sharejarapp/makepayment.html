@@ -1,12 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="header-text">
-  Make a payment to {{charity}}<br><br>
+<div class="page-header">
+    {% if team %}
+    <h3>Make a payment to {{charity}} through {{team}}</h3>
+    {% else %}
+    <h3>Make a payment to {{charity}}</h3>
+    {% endif %}
 </div>
-
-Please enter the amount you would like to pay<br>
+    {% if team %}
+    <h5>Your current balance for {{team}} is ${{balance.balance}}.</h5>
+    {% else %}
+    <h5>Your current balance for {{charity}} is ${{balance.balance}}.</h5>
+    {% endif %}
+<h5>Please enter the amount you would like to pay.</h5>
+{% if team %}
+<form action={% url 'makePayment' charity team %} method="post">
+{% else %}
 <form action={% url 'makePayment' charity %} method="post">
+{% endif %}
   {% csrf_token %}
   {{paymentForm}}
   <input type="submit" value="Submit" />

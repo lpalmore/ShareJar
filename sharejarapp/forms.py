@@ -23,6 +23,15 @@ class AddBalanceForm(forms.Form):
     increment = forms.DecimalField(max_digits=5, decimal_places=2, label="Amount")
     charity = forms.ModelChoiceField(queryset=Charity.objects.all(), to_field_name="charityname")
 
+class AddTeamBalanceForm(forms.Form):
+    increment = forms.DecimalField(max_digits=5, decimal_places=2, label="Amount")
+    team = None
+    def __init__(self, *args, **kwargs):
+        currentMember = kwargs.pop('member', None)
+        super(AddTeamBalanceForm, self).__init__(*args, **kwargs)
+        if currentMember is not None:
+            self.fields['team'] = TeamModelChoiceField(queryset=currentMember.teammemberlist_set.all())
+
 
 class MakePaymentForm(forms.Form):
     amount = forms.IntegerField(max_value=100, min_value=1)
@@ -94,9 +103,13 @@ class ChangeLeaderForm(forms.Form):
     team = forms.CharField(max_length=80)
 
 class InviteTeamForm(forms.Form):
-    # How can I make this match the username field?
     team = forms.CharField(max_length=80)
     username = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username to Invite'}))
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if not User.objects.filter(username=username).exists():
+            raise forms.ValidationError("No user with that username exists.")
+        return username
 
 class LeaveTeamForm(forms.Form):
     team = forms.CharField(max_length=80)
@@ -114,3 +127,15 @@ class JoinTeamForm(forms.Form):
         super(JoinTeamForm, self).__init__(*args, **kwargs)
         if currentMember is not None:
             self.fields['team'] = forms.ModelChoiceField(queryset=Invite.objects.filter(member=currentMember))
+
+class LeaveTeamForm(forms.Form):
+    team = None
+    def __init__(self, *args, **kwargs):
+        currentMember = kwargs.pop('member', None)
+        super(LeaveTeamForm, self).__init__(*args, **kwargs)
+        if currentMember is not None:
+            self.fields['team'] = TeamModelChoiceField(queryset=currentMember.teammemberlist_set.all())
+
+class TeamModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.team.name

@@ -43,19 +43,20 @@ class Member(models.Model):
 class Team(models.Model):
 	name = models.CharField(max_length=80, unique=True, default='Unknown')
 	leader = models.ForeignKey(Member)
+	charity = models.ForeignKey(Charity, null=True)
 	def __unicode__(self):
 		return u'{0}'.format(self.name)
 
 class TeamMemberList(models.Model):
 	team = models.ForeignKey(Team)
-	member = models.ForeignKey(Member)
+	members = models.ManyToManyField(Member)
 
 # Donation are the result of a payment
 class Donation(models.Model):
 	member = models.ForeignKey(Member)
 	charity = models.ForeignKey(Charity)
 	# Need to know which team the user was one when the donation was made
-	team = models.ForeignKey(Team)
+	team = models.ForeignKey(Team, null=True)
 	# Should match the characteristics of "balance" in "Balances"
 	total = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 
@@ -63,10 +64,11 @@ class Balances(models.Model):
 	#username_text = models.CharField(max_length=20, primary_key=True) #FIXLATER add check to make sure username under 20 characters
 	member = models.ForeignKey(Member, null=True)
 	charity = models.ForeignKey(Charity, null=True)
+	team = models.ForeignKey(Team, null=True)
 	#balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 	balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 	class Meta:
-		unique_together = (("member", "charity"))
+		unique_together = (("member", "team"))
 
 class Invite(models.Model):
 	member = models.ForeignKey(Member, default=None)

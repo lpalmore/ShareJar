@@ -2,15 +2,13 @@
 
 {% block content %}
 
-<div class="container">
-    <div class="row">
-        <div class="jumbotron">
-            {% if success %}
-                Payment confirmed
-            {% else %}
-                There was an error- please try again later.
-            {% endif %}
-        </div>
-    </div>
+<div class="page-header">
+    <h3>Payment Confirmation</h3>
 </div>
+    {% if success %}
+        Payment confirmed!<
+    {% else %}
+        There was an error- the payment was not processed. Please try again later.
+    {% endif %}
+
 {% endblock %}
