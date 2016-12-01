@@ -145,12 +145,13 @@ def joinTeam(request):
     member = Member.objects.get(user=current_user)
     currentTeam = None
     teamMemberList = member.teammemberlist_set.first()
-    isOnTeam = request.isOnTeam
+    isOnTeam = False
     if not teamMemberList == None:
         currentTeamObject = teamMemberList.team
         currentTeam = currentTeamObject.name
         isOnTeam = True
     if request.method == 'POST':
+        isOnTeam = request.isOnTeam
         #Determine which form was submitted
         if 'create_team' in request.POST:
             form = CreateTeamForm(request.POST)

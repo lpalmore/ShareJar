@@ -58,7 +58,7 @@ def initPayment(userEmail, amount, charityName, charityEmail, teamName=None):
             # ItemList
             "item_list": {
                 "items": [{
-                    "name": "11/11 Item",
+                    "name": "This is a test of login_required",
                     "sku": "item",
                     "price": amount,
                     "currency": "USD",
@@ -92,10 +92,13 @@ def createPayment(userEmail, amount, charityName, charityEmail, teamName=None):
         return None
 
 def executePayment(payerID, paymentID, member, teamName):
-    payment = Payment.find(paymentID);
+    payment = Payment.find(paymentID)
+    paymentEmail = payment.payer.payer_info.email
+    paymentMember = Member.objects.get(paypal_email=paymentEmail)
+    if not member == paymentMember:
+        print 'Error: logged in user is not user who created payment. Payment will not be executed.'
+        return False
     success = payment.execute({"payer_id": payerID})
-    print 'executePayment -----------------------'
-    print teamName
     if success:
         print "Successfully executed payment"
     else:
