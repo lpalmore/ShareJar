@@ -68,7 +68,7 @@ class Balances(models.Model):
 	#balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 	balance = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
 	class Meta:
-		unique_together = (("member", "charity"))
+		unique_together = (("member", "team"))
 
 class Invite(models.Model):
 	member = models.ForeignKey(Member, default=None)

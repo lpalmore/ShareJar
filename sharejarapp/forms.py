@@ -81,6 +81,7 @@ class CharityForm(ModelForm):
 
 class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80)
+    charity = forms.ModelChoiceField(queryset=Charity.objects.all(), to_field_name="charityname")
     def clean_name(self):
         name = self.cleaned_data['name']
         if Team.objects.filter(name=name).exists():

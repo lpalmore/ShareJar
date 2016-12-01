@@ -38,7 +38,7 @@
     {% if teambalances %}
       {% for balance in teambalances %}
          <label for="balance">${{balance.balance}} {{balance.team}}</label>
-         <a href="{% url 'makePayment' balance.charity %}" class="btn btn-default">Make Payment</a>
+         <a href="{% url 'makePayment' balance.charity balance.team %}" class="btn btn-default">Make Payment</a>
       {%  endfor %}
     {% else %}
         <label for="balance">No team balances to display</label>

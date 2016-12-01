@@ -145,7 +145,7 @@ def joinTeam(request):
     member = Member.objects.get(user=current_user)
     currentTeam = None
     teamMemberList = member.teammemberlist_set.first()
-    isOnTeam = False
+    isOnTeam = request.isOnTeam
     if not teamMemberList == None:
         currentTeamObject = teamMemberList.team
         currentTeam = currentTeamObject.name
@@ -156,7 +156,7 @@ def joinTeam(request):
             form = CreateTeamForm(request.POST)
             if form.is_valid():
                 #Add team with this name to the DB
-                newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member)
+                newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member, charity=form.cleaned_data['charity'])
                 newTeamObject.save()
                 addMemberToTeam(member, newTeamObject)
                 currentTeam = newTeamObject.name
@@ -225,38 +225,55 @@ def joinTeam(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def makePayment(request, charity):
+def makePayment(request, charity, team=None):
     # TODO Actually pull the balance from the model
+    print "makePayment -----------"
+    print charity
+    print team
+    member = Member.objects.get(user=request.user)
+    if team:
+        teamObj = Team.objects.get(name=team)
+        balance = Balances.objects.get(member=member, team=teamObj)
+    else:
+        charityObj = Charity.objects.get(charityname=charity)
+        balance = Balances.objects.get(member=member, charity=charityObj, team=None)
     if request.method == 'POST':
         form = MakePaymentForm(request.POST)
         if form.is_valid():
             current_user = request.user
             memberEmail = Member.objects.get(user=current_user).paypal_email
             charityEmail = Charity.objects.get(charityname=charity).paypal_email
-            amount = Balances.objects.get()
-            redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
+            amount = form.cleaned_data['amount']
+            if team:  
+                redirectURL = createPayment(memberEmail, amount, charity, charityEmail, team)
+            else:
+                redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
             if redirectURL:
                 return redirect(redirectURL)
             else:
-                return redirect('/addBalance/')
+                return redirect('/balances/')
                 pass
         else:
             # Form data isn't valid. Notify the user
             pass
     else:
         template = loader.get_template('sharejarapp/makepayment.html')
-        context = {"charity": charity, "paymentForm":MakePaymentForm()}
+        context = {"charity": charity, "balance": balance, "paymentForm":MakePaymentForm()}
+        if team:
+            context['team'] = team
     return HttpResponse(template.render(context, request))
 
 
 def confirmPayment(request, etc):
+    print 'confirmPayment----------------'
+    teamName = etc[1:]
     payerID = request.GET.get('PayerID', '')
     paymentID = request.GET.get('paymentId', '')
     print 'payerID: ' + payerID
     print 'paymentID: ' + paymentID
     current_user = request.user
     member = Member.objects.get(user=current_user)
-    success = executePayment(payerID, paymentID, member)
+    success = executePayment(payerID, paymentID, member, teamName)
     template = loader.get_template('sharejarapp/confirmPayment.html')
     context = {
         'success': success
