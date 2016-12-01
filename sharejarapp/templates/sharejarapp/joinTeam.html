@@ -37,7 +37,7 @@
                    <select required class="form-control" name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
                      <label>
                      <option selected hidden >Select A Member</option>
-                     {% for m in membernames %}
+                     {% for m in Info.membernames %}
                        <option Value={{m}}>{{m}}</option>
                      {% endfor %}
                    </select>
@@ -51,13 +51,13 @@
                        <input type="hidden" name="team" value="{{ t.name }}">
                         <select required class="form-control" name="member" id="choice" Height="72px" Width="184px">
                             <option selected hidden >Select A Member</option>
-                            {% for m in membernames %}
+                            {% for m in Info.membernames %}
                               <option Value={{m}}>{{m}}</option>
                             {% endfor %}
                         </select>
                         <select required class="form-control" name="charity" id="BalancesDropDown" Height="18px" Width="187px">
                             <option selected disabled hidden >Select A Charity/Balance</option>
-                            {% for b in charitybalances %}
+                            {% for b in Info.memberbalances %}
                               <option Value={{b.member.user}}_{{b.charity}}>${{b.balance}} {{b.charity}}</option>
                             {% endfor %}
                         </select>

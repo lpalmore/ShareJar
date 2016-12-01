@@ -144,13 +144,13 @@ def joinTeam(request):
     #retrieve teams information
     teams = GetTeams(member)
     TeamsInfo = []
-    print teams
     for t in teams:
         teamInfo = {}
         if t.leader == member:
             membernames = getUsernamesInTeam(t)
+            teamInfo['membernames'] = membernames
             memberbalances = getAllTeamBalances(t)
-            changeTeamNameForm = ChangeTeamNameForm()
+            teamInfo['memberbalances'] = memberbalances
             #add choose charity here
         TeamsInfo.append((t, teamInfo))
     context["TeamsInfo"] = TeamsInfo
@@ -186,13 +186,10 @@ def joinTeam(request):
                 pass
         elif 'invite_member' in request.POST:
             # Generate code, associate code with email
-            print "inviting member"
             form = InviteTeamForm(request.POST)
-            print form
             if form.is_valid():
                 team = form.cleaned_data['team']
                 username = form.cleaned_data['username']
-                print "inviting "+username+" to team "+ team
                 try:
                     inviteUser = User.objects.get(username=username)
                     inviteMember = Member.objects.get(user=inviteUser)
@@ -223,14 +220,10 @@ def joinTeam(request):
             teamToChange = request.POST['team']
             transferLeader(teamToChange, newLeader)
         elif 'change_team_name' in request.POST:
-            print "change name"
             formCTN = ChangeTeamNameForm(request.POST)
-            print formCTN
             if formCTN.is_valid():
-                print "form valid"
                 newTeamName = formCTN.cleaned_data['name']
                 currentTeam = formCTN.cleaned_data['team']
-                print "changing name "+currentTeam+" to "+newTeamName
                 editTeamName(currentTeam, newTeamName)
             else:
                 pass

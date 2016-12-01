@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite
-
+from django.contrib.auth.models import User
 
 # Deletes the teamObject instance if it has no remaining members or pending invites
 def teamCleanUp(teamObject):
@@ -62,8 +62,10 @@ def editTeamName(teamName, newTeamName):
     team.save()
     return
 
-def transferLeader(teamName, newLeader):
+def transferLeader(teamName, newLeaderName):
     team = Team.objects.all().filter(name=teamName).first()
+    newLeaderUser = User.objects.all().filter(username=newLeaderName).first()
+    newLeader = Member.objects.all().filter(user=newLeaderUser).first()
     #TODO fix error
     team.leader = newLeader
     team.save()
@@ -86,8 +88,6 @@ def getAllTeamBalances(teamName):
     balances = None
     try:
         balances = Balances.objects.all().filter(member__in=teamMembers)
-        print balances
-        print balances
     except ObjectDoesNotExist:
         pass
     return balances
