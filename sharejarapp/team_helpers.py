@@ -9,7 +9,7 @@ def teamCleanUp(teamObject):
        print "Deleting team" + teamObject.name
        teamObject.delete()
 
-
+#TODO no longer remove from current team
 #Adds member to specified team. Removes member from current team if there is one
 def addMemberToTeam(member, newTeamObject, currentTeamObject=None):
     if not member:
@@ -45,7 +45,7 @@ def leaveTeam(teamName, member):
         #TODO: they must choose replacement
         else:
             #TODO error
-            #team.leader = TeamMemberList.objects.all().filter(team=team).first()
+            team.leader = TeamMemberList.objects.all().filter(team=team).first()
             team.save()
     return
 
@@ -65,7 +65,7 @@ def editTeamName(teamName, newTeamName):
 def transferLeader(teamName, newLeader):
     team = Team.objects.all().filter(name=teamName).first()
     #TODO fix error
-    #team.leader = newLeader
+    team.leader = newLeader
     team.save()
     return
 
@@ -91,7 +91,7 @@ def getAllTeamBalances(teamName):
     except ObjectDoesNotExist:
         pass
     return balances
-'''
+
 def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount):
     edit = Balances.objects.all().filter(member = edit_balance_member, charity=edit_balance_charity)
     cbalance = edit.balance
@@ -110,5 +110,3 @@ def GetTeams(teamMember):
     for t in teamName:
         teams.append(t.team)
     return teams
-
-'''
