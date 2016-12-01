@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
 
-Team Stats! <br>
 
-{{teamName}}      {{donationTotal}}
+
+<div class="page-header">
+  <h3>{{teamName}} Stats</h3>
+</div>
+ <br>
+
+
+
+<p class="thick">Total Team Contributions:      ${{donationTotal}}</p>
 <br> <br>
 {% if currentMemberDonations %}
 Current Members <br>
 {% for donationOb in currentMemberDonations %}
-{{donationOb.member.name}}         {{donationOb.total}}
+{{donationOb.member.user.username}}         {{donationOb.total}}
 <br>
 {% endfor %}
 {% endif %}
