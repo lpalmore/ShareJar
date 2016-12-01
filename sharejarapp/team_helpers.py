@@ -30,24 +30,23 @@ def addMemberToTeam(member, team=None):
     member: member id of user
 '''
 def leaveTeam(teamName, member):
-    team = Team.objects.all().filter(name=teamName).first()
+    team = Team.objects.get(name=teamName)
 
     #remove user from TeamMemberList
-    teamMembers = TeamMemberList.objects.all().filter(team=team).first()
+    teamMembers = TeamMemberList.objects.get(team=team)
     teamMembers.members.remove(member)
 
     #if user is leader, update team leader
     if team.leader == member:
         #if they are the only member, delete team
-        if teamMembers.members == None:
+        if teamMembers.members.first() == None:
             print "deleteing team"
             deleteTeam(teamName)
         #otherwise, select random member
         #TODO: they must choose replacement
         else:
             #TODO error
-            tml = TeamMemberList.objects.all().filter(team=team).first()
-            team.leader = tml.member.user.username
+            team.leader = teamMembers.members.first()
             team.save()
     return
 
@@ -55,8 +54,10 @@ def isLeader(member):
     return Team.objects.all().filter(leader=member).first != None
 
 def deleteTeam(teamName):
-    team = Team.objects.all().filter(name=teamName).first().delete()
-    teamMembers = TeamMemberList.objects.all().filter(team=team).delete() #deleting team
+    team = Team.objects.get(name=teamName)
+    teamMembers = TeamMemberList.objects.get(team=team).delete()
+    team.delete()
+    #teamMembers = TeamMemberList.objects.get(team=team).delete() #deleting team
     return
 
 def editTeamName(teamName, newTeamName):
@@ -76,18 +77,18 @@ def transferLeader(teamName, newLeaderName):
 
 def getUsernamesInTeam(inTeamName):
     team = Team.objects.all().filter(name=inTeamName).first()
-    memberlist = TeamMemberList.objects.all().filter(team = team).all()
+    memberlist = TeamMemberList.objects.get(team=team)
     usernames = []
-    for member in memberlist:
-        usernames.append(member.member.user.username)
+    for member in memberlist.members.all():
+        usernames.append(member.user.username)
     return usernames
 
 def getAllTeamBalances(teamName):
     team = Team.objects.all().filter(name=teamName).first()
-    memberlist = TeamMemberList.objects.all().filter(team = team).all()
+    memberlist = TeamMemberList.objects.get(team=team)
     teamMembers = []
-    for tml in memberlist:
-        teamMembers.append(tml.member)
+    for member in memberlist.members.all():
+        teamMembers.append(member)
     balances = None
     try:
         balances = Balances.objects.all().filter(member__in=teamMembers)
@@ -113,7 +114,7 @@ def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balanc
     return False
 
 def GetTeams(teamMember):
-    teamName = TeamMemberList.objects.all().filter(member=teamMember)
+    teamName = teamMember.teammemberlist_set.all()
     teams =[]
     for t in teamName:
         teams.append(t.team)

@@ -81,6 +81,7 @@ class CharityForm(ModelForm):
 
 class CreateTeamForm(forms.Form):
     name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Team Name'}))
+    charity = forms.ModelChoiceField(queryset=Charity.objects.all(), to_field_name="charityname")
     def clean(self):
         cleaned_data = super(CreateTeamForm, self).clean()
         name = cleaned_data.get('name')
@@ -127,14 +128,6 @@ class JoinTeamForm(forms.Form):
         super(JoinTeamForm, self).__init__(*args, **kwargs)
         if currentMember is not None:
             self.fields['team'] = forms.ModelChoiceField(queryset=Invite.objects.filter(member=currentMember))
-
-class LeaveTeamForm(forms.Form):
-    team = None
-    def __init__(self, *args, **kwargs):
-        currentMember = kwargs.pop('member', None)
-        super(LeaveTeamForm, self).__init__(*args, **kwargs)
-        if currentMember is not None:
-            self.fields['team'] = TeamModelChoiceField(queryset=currentMember.teammemberlist_set.all())
 
 class TeamModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):

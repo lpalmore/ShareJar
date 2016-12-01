@@ -13,16 +13,13 @@ def getAllBalance(user):
 def getTeamBalance(user):
     member = Member.objects.get(user=user) #get member from current user
     teamMemberList = member.teammemberlist_set.all()
-    balances = None
+    balances = []
     if not teamMemberList == None:
         for teamList in teamMemberList:
             team = teamList.team
             try:
-                balance = Balances.objects.all().filter(member=member, team=team)
-                if balances == None:
-                    balances = balance
-                else:
-                    balances.append(balance)
+                balance = Balances.objects.get(member=member, team=team)
+                balances.append(balance)
             except ObjectDoesNotExist:
                 pass
     return balances
@@ -35,7 +32,7 @@ def addToBalance(member, charityname, increment):
             b.balance += increment
             b.save()
         except ObjectDoesNotExist:
-            b = Balances.objects.create(member=member, charity=charityname, team=None, balance=increment)
+            b = Balances.objects.create(member=member, charity=charityname, team=None,balance=increment)
         success = True
     return success
 

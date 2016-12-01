@@ -154,16 +154,15 @@ def joinTeam(request):
 
     #process all post requests
     if request.method == 'POST':
-        isOnTeam = request.isOnTeam
         #Determine which form was submitted
         if 'create_team' in request.POST:
             createTeamForm = CreateTeamForm(request.POST)
             print createTeamForm
             if createTeamForm.is_valid():
                 #Add team with this name to the DB
-                newTeamObject = Team.objects.create(name=createTeamForm.cleaned_data['name'], leader=member)
+                newTeamObject = Team.objects.create(name=createTeamForm.cleaned_data['name'], charity=createTeamForm.cleaned_data['charity'], leader=member)
                 newTeamObject.save()
-                addMemberToTeam(member, newTeamObject, None)
+                addMemberToTeam(member, newTeamObject)
             else:
                 context['createTeamForm'] = createTeamForm
         elif 'join_team' in request.POST:
@@ -174,7 +173,7 @@ def joinTeam(request):
                     team = Team.objects.get(name=teamName)
                     inviteObject = Invite.objects.get(member=member, team=team)
                     newTeamObject = inviteObject.team
-                    addMemberToTeam(member, newTeamObject, None)
+                    addMemberToTeam(member, newTeamObject)
                     inviteObject.delete()
                 except ObjectDoesNotExist:
                     pass
