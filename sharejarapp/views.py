@@ -19,6 +19,7 @@ from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 
+
 from team_helpers import addMemberToTeam, GetTeams, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
 from balance_helpers import getBalance, addToBalance
 
@@ -84,7 +85,8 @@ def teamStats(request, teamName=None):
             # Sum of every donation made by members (former and present) of this team
             donationTotal = Donation.objects.filter(team=team).aggregate(Sum('total'))
             allMemberDonationList = Donation.objects.filter(team=team)
-            currentMembers = TeamMemberList.objects.filter(team=team)
+            currentMembers = TeamMemberList.objects.filter(team=team).values_list('member', flat=True)
+            currentMembers = Member.objects.filter(pk__in=currentMembers).all()
         except ObjectDoesNotExist:
             print "\n Failed to find donation information \n"
 
@@ -95,6 +97,8 @@ def teamStats(request, teamName=None):
 
         context['donationTotal'] = donationTotal
         if allMemberDonationList and currentMembers:
+            print "\n\n\n WTF"
+            print currentMembers
             currentMemberDonations = [ob for ob in allMemberDonationList if ob.member in currentMembers]
             formerMemberDonations = [ob for ob in allMemberDonationList if ob.member not in currentMembers]
 
