@@ -49,10 +49,10 @@ class EditCharityForm(forms.Form):
         return paypal_email
 
 class LookupCharityForm(forms.Form):
-    charityname = forms.CharField(max_length=80, label='Charity Name')
+    charityname = forms.CharField(max_length=80, label='Charity Name', widget=forms.TextInput(attrs={'class': 'form-control'}))
 
 class LookupUserForm(forms.Form):
-    username = forms.CharField(max_length=80, label='Username')
+    username = forms.CharField(max_length=80, label='Username', widget=forms.TextInput(attrs={'class': 'form-control'}))
 
 class CharityForm(ModelForm):
 
@@ -71,14 +71,14 @@ class CharityForm(ModelForm):
         return paypal_email
 
 class CreateTeamForm(forms.Form):
-    name = forms.CharField(max_length=80)
+    name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Team Name'}))
 
 class ChangeTeamNameForm(forms.Form):
-    name = forms.CharField(max_length=80)
+    name = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter New Team Name'}))
 
 class InviteTeamForm(forms.Form):
     # How can I make this match the username field?
-    username = forms.CharField(max_length=80)
+    username = forms.CharField(max_length=80, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username to Invite'}))
 
 class JoinTeamForm(forms.Form):
     team = None

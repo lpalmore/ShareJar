@@ -19,7 +19,8 @@ from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 
-from team_helpers import addMemberToTeam, leaveTeam, isLeader, getUsernamesInTeam, getAllTeamBalances, transferLeader, editTeamName
+
+from team_helpers import addMemberToTeam, GetTeams, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
 from balance_helpers import getBalance, addToBalance
 
 def admin_check(user):
@@ -135,37 +136,37 @@ def balance(request):
 
 @login_required
 def joinTeam(request):
+    context = {}
     template = loader.get_template('sharejarapp/joinTeam.html')
     current_user = request.user
     member = Member.objects.get(user=current_user)
-    currentTeam = None
-    currentTeamObject = None
-    isCurrentLeader = isLeader(member)
-    context = {'isCurrentLeader': isCurrentLeader}
-    print isCurrentLeader
-    try:
-        currentTeamObject = TeamMemberList.objects.get(member=member).team
-        currentTeam = currentTeamObject.name
-        if isCurrentLeader:
-            context['membernames'] = getUsernamesInTeam(currentTeam)
-            charitybalances = getAllTeamBalances(currentTeam)
-            print charitybalances
-            context['charitybalances'] = charitybalances
+
+    #retrieve teams information
+    teams = GetTeams(member)
+    TeamsInfo = []
+    print teams
+    for t in teams:
+        teamInfo = {}
+        if t.leader == member:
+            membernames = getUsernamesInTeam(t)
+            memberbalances = getAllTeamBalances(t)
             changeTeamNameForm = ChangeTeamNameForm()
-            context['changeTeamNameForm'] = changeTeamNameForm
-    except ObjectDoesNotExist:
-        pass
+            #add choose charity here
+        TeamsInfo.append((t, teamInfo))
+    context["TeamsInfo"] = TeamsInfo
+    context["hasTeam"] = (len(teams) != 0)
+    context["username"] = member.user.username
+
+    #process all post requests
     if request.method == 'POST':
         #Determine which form was submitted
         if 'create_team' in request.POST:
-            print "creating team"
             form = CreateTeamForm(request.POST)
             if form.is_valid():
                 #Add team with this name to the DB
                 newTeamObject = Team.objects.create(name=form.cleaned_data['name'], leader=member)
                 newTeamObject.save()
-                addMemberToTeam(member, newTeamObject, currentTeamObject)
-                currentTeam = newTeamObject.name
+                addMemberToTeam(member, newTeamObject, None)
             else:
                 print "Create Team Form Error!"
         elif 'join_team' in request.POST:
@@ -178,7 +179,6 @@ def joinTeam(request):
                     newTeamObject = inviteObject.team
                     addMemberToTeam(member, newTeamObject, currentTeamObject)
                     inviteObject.delete()
-                    currentTeam = newTeamObject
                 except ObjectDoesNotExist:
                     pass
             else:
@@ -192,30 +192,32 @@ def joinTeam(request):
                 try:
                     inviteUser = User.objects.get(username=username)
                     inviteMember = Member.objects.get(user=inviteUser)
-                    inviteObject = Invite.objects.create(team=currentTeamObject, member=inviteMember)
+                    #TODO invite form needs to send team
+                    inviteToTeam = None #form.cleaned_data['team']
+                    inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
                 except ObjectDoesNotExist:
                     pass # Error
                 #Send a notification and code to email provided
             else:
                 pass
         elif 'leave_team' in request.POST:
-            leaveTeam(currentTeam, member)
-            currentTeam = None
-            currentTeamObject = None
+            #TODO form needs to send team
+            teamToLeave = None #teamToLeave = request.POST['leave_team_name']
+            leaveTeam(teamToLeave, member)
         elif 'edit_balance' in request.POST:
             edit_balance_member, edit_balance_charity, edit_balance_amount = None, None, None
             try:
                 edit_balance_member = request.POST['member']
                 edit_balance_charity = request.POST['charity'].split('_')[1]
                 edit_balance_amount = request.POST['amount']
+                EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount)
             except:
                 pass
-            if edit_balance_member and edit_balance_charity and edit_balance_amount:
-                EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount)
         elif 'change_leader' in request.POST:
             newLeader = request.POST['NewTeamLeader']
-            print newLeader
-            transferLeader(currentTeam, newLeader)
+            #TODO form needs to send team
+            teamToChange = None #teamToChange = request.POST['leave_team_name']
+            transferLeader(teamToChange, newLeader)
         elif 'change_team_name' in request.POST:
             formCTN = ChangeTeamNameForm(request.POST)
             if formCTN.is_valid():
@@ -225,11 +227,9 @@ def joinTeam(request):
                 pass
         else:
             pass #Error!
-        print request.POST
 
     #Does this member have an outstanding balance?
     outstandingBalances = None
-    context['currentTeam'] = currentTeam
     try:
         outstandingBalances = Balances.objects.filter(member=member).aggregate(Sum('balance'))
         outstandingBalances = outstandingBalances['balance__sum']
@@ -238,6 +238,8 @@ def joinTeam(request):
     if outstandingBalances == None or outstandingBalances == 0:
         #This user may create or join a new team
         context['createTeamForm'] = CreateTeamForm()
+        context['inviteTeamForm'] = InviteTeamForm()
+        context['changeTeamNameForm'] = ChangeTeamNameForm()
         context['joinTeamForm'] = JoinTeamForm(member=member)
     else:
         print "You have outstanding balances!" + str(outstandingBalances)

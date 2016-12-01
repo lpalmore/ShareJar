@@ -4,79 +4,158 @@
 <div class="container">
 
 
-{% block title %}
-{% if currentTeam %}
-Current Team: {{currentTeam}}
-{% else %}
-Join a Team
-{% endif %}
-{% endblock %}
+
 
 {% block content %}
-<div class="addCharity-panel panel panel-default">
-  <div class="panel-body">
 
-  {% if createTeamForm %}
-  
-   <form action={% url 'joinTeam' %} method="post"\>
-      Create a team <br>
-      {% csrf_token %}
-      {{createTeamForm}}
-      <input type="submit" value="Create and Join Team" name="create_team" />
-   </form>
-   <br><br>
+        <!--Show team blocks if user is on a team-->
+        {% if hasTeam %}
+           <!--loop through teams, creating a team block for each one-->
+           {% for t, Info in TeamsInfo %}
+           <div class="addCharity-panel panel panel-default">
+             <div class="panel-body">
+               <h4>Team: {{ t.name }}  </h4>
+               <!--Invite to team-->
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                 {{inviteTeamForm.username}}
+                 <input class="btn btn-default" type="submit" value="Invite" name="invite_member"/>
+               </form>
+             </br>
+               <!--Team Leader Block-->
+               {% if t.leader.user.username == username %}
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                 {{changeTeamNameForm.name}}
+                 <input class="btn btn-default" type="submit" value="Change Team Name" name="change_team_name"/>
+               </form>
+               <br>
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                   <div>
+                   <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
+                     <label>
+                     <option selected disabled style='display: none' value=''></option>
+                     {% for m in membernames %}
+                       <option Value={{m}}>{{m}}</option>
+                     {% endfor %}
+                   </select>
+                   <input class="btn btn-default" type="submit" value="Change Leader" name="change_leader"/>
+                 </div>
+               </form>
+               <br>
+                   <form class="form-inline" action={% url 'joinTeam' %} method="post"\>
+                     {% csrf_token %}
+                     <div>
+                        <select class="form-control" name="member" id="MemberDropDown" Height="72px" Width="184px">
+                            <option selected hidden >Select A Member</option>
+                            {% for m in membernames %}
+                              <option Value={{m}}>{{m}}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="form-control" name="charity" id="BalancesDropDown" Height="18px" Width="187px">
+                            <option selected hidden >Select A Charity/Balance</option>
+                            {% for b in charitybalances %}
+                              <option Value={{b.member.user}}_{{b.charity}}>${{b.balance}} {{b.charity}}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="input-group">
+                          <div class="input-group-addon">$</div>
+                            <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter an Amount">
+                          </div>
+                        <input class="btn btn-default" type="submit" value="Edit Balance" name="edit_balance"/>
+                      </div>
+                   </form>
+               {% endif %}
+               <!--End of Team Leader Block-->
+               </br>
+               <!--Leave Team-->
+               <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+                 <input class="btn btn-default" type="submit" value="Leave Team" name="leave_team" />
+               </form>
 
-   <form form action={% url 'joinTeam' %} method="post"\>
-     You have invitations to the following teams
-     {% csrf_token %}
-     {{joinTeamForm}}
-     <input type="submit" value="Accept Team Invitation" name="join_team"/>
-   </form>
-   {% else %}
-      <div class="alert alert-danger">You cannot create or join a new team until your balances are cleared</div>
-   {% endif %}
+             </div>
+           </div>
+           {% endfor %}
+        {% endif %}
+        <!--End of Team Blocks-->
 
-   {% if currentTeam %}
-   <form form action={% url 'joinTeam' %} method="post"\>
-     Invite someone to join this team!
-     {% csrf_token %}
-     {{inviteTeamForm}}
-     <br>
-     <input type="submit" value="Invite user to team" name="invite_member"/>
-     <br><br>
-   </form>
-   <form form action={% url 'joinTeam' %} method="post"\>
-     {% csrf_token %}
-     <input type="submit" value="Leave Team" name="leave_team" />
-   </form>
-   {% endif %}
+        <!--Create Or Join Team-->
+        {% if createTeamForm %}
+        <div class="addCharity-panel panel panel-default">
+          <div class="panel-body">
+        <div class="row">
+        <div class="col-sm-6 text-center">
+          <h4>Create a Team</h4>
+          <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+            <p class="form-createTeam">
+              {% if createTeamForm.non_field_errors %}
+                <div class="alert alert-danger">
+                  {% for error in createTeamForm.non_field_errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-group">
+                <label class="sr-only" for="exampleInputEmail3">{{ createTeamForm.name.label_tag }}</label>
+                  {{createTeamForm.name}}
+              </div>
+              <input class="btn btn-default" type="submit" value="Create and Join Team" name="create_team" />
+            </p>
+          </form>
+        </div>
+        <div class="col-sm-6 text-center">
+          <h4>Join a Team</h4>
+          <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+            <p class="form-joinTeam">
+              {% if joinTeamForm.non_field_errors %}
+                <div class="alert alert-danger">
+                  {% for error in joinTeamForm.non_field_errors %}
+                    <p>{{ error }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <div class="form-group">
+                {{ joinTeamForm.team.label_tag }}
+                {{joinTeamForm.team}}
+              </div>
+              <input class="btn btn-default" type="submit" value="Accept Team Invitation" name="join_team"/>
+            </p>
+          </form>
+        </div>
+        </div>
+        {% else %}
+            <div class="alert alert-danger">You cannot create or join a new team until your balances are cleared</div>
+        {% endif %}
+        </div>
+      </div>
+      <!--End of Create or Join Block-->
+
    {% if isCurrentLeader %}
    <div class="addCharity-panel panel panel-default">
      <div class="panel-body">
-       <form form action={% url 'joinTeam' %} method="post"\>
+       <form class="form-inline" action={% url 'joinTeam' %} method="post"\>
          {% csrf_token %}
          <div>
            <h4>Edit Team Member Balances</h4>
-           Select Member
-            <select name="member" id="MemberDropDown" Height="72px" Width="184px">
-                <option selected disabled style='display: none' value=''></option>
+            <select class="form-control" name="member" id="MemberDropDown" Height="72px" Width="184px">
+                <option selected hidden >Select A Member</option>
                 {% for m in membernames %}
                   <option Value={{m}}>{{m}}</option>
                 {% endfor %}
             </select>
-            Select Charity/Balance
-            <select name="charity" id="BalancesDropDown" Height="18px" Width="187px">
-                <option selected disabled style='display: none' value=''></option>
+            <select class="form-control" name="charity" id="BalancesDropDown" Height="18px" Width="187px">
+                <option selected hidden >Select A Charity/Balance</option>
                 {% for b in charitybalances %}
                   <option Value={{b.member.user}}_{{b.charity}}>${{b.balance}} {{b.charity}}</option>
                 {% endfor %}
             </select>
-            Select Amount (negative or positive) <input type="text" name="amount">
-            <input type="submit" value="Edit Balance" name="edit_balance"/>
+            <div class="input-group">
+              <div class="input-group-addon">$</div>
+                <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter an Amount">
+              </div>
+            <input class="btn btn-default" type="submit" value="Edit Balance" name="edit_balance"/>
           </div>
        </form>
        <hr>
-       <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+       <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
            <div>
            <h4>Change Team Leader</h4>
            <select name="NewTeamLeader" id="NewTeamLeaderDropDown" Height="18px" Width="187px">
@@ -85,21 +164,20 @@ Join a Team
                <option Value={{m}}>{{m}}</option>
              {% endfor %}
            </select>
-           <input type="submit" value="Change Leader" name="change_leader"/>
+           <input class="btn btn-default" type="submit" value="Change Leader" name="change_leader"/>
          </div>
        </form>
        <hr>
-       <form form action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
+       <form class="form-inline" action={% url 'joinTeam' %} method="post"\>{% csrf_token %}
          <h4>Change Team Name</h4>
          {{changeTeamNameForm}}
-         <input type="submit" value="Change Team Name" name="change_team_name"/>
+         <input class="btn btn-default" type="submit" value="Change Team Name" name="change_team_name"/>
        </form>
      </div>
    </div>
    {% endif %}
 </div>
-</div>
-</div>
+
 {% endblock %}
 
 {% block script %}

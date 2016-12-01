@@ -21,24 +21,14 @@
       <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
     </div>
     <ul class="nav navbar-nav navbar-right">
-      <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Join team</a>{% endblock %}</li>
-      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Team stats</a>{% endblock %}</li>
+      <li>{% block navjointeam %} <a href="{% url 'joinTeam' %}">Teams</a>{% endblock %}</li>
+      <li>{% block navteamstats %} <a href="{% url 'teamStats' %}">Stats</a>{% endblock %}</li>
       <li>{% block navaddtobalance %} <a href="{% url 'balance' %}">Balances</a>{% endblock %}</li>
     <ul class="nav navbar-nav">
       <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
     </ul>
   </div>
 </nav>
-
-
-<div class="container">
-
-<div class="page-header">
-  <h3>{% block title %}{% endblock %}</h3>
-  <h4>{% block subtitle%}{% endblock %}</h4>
-</div>
-
-
 {% block content%}
 
 {% endblock %}
