@@ -263,7 +263,7 @@ def makePayment(request, charity, team=None):
             context['team'] = team
     return HttpResponse(template.render(context, request))
 
-
+@login_required(login_url='/login')
 def confirmPayment(request, etc):
     print 'confirmPayment----------------'
     teamName = etc[1:]
