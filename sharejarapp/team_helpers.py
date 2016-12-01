@@ -45,7 +45,8 @@ def leaveTeam(teamName, member):
         #TODO: they must choose replacement
         else:
             #TODO error
-            team.leader = TeamMemberList.objects.all().filter(team=team).first()
+            tml = TeamMemberList.objects.all().filter(team=team).first()
+            team.leader = tml.member.user.username
             team.save()
     return
 
