@@ -20,6 +20,7 @@
     	{% for balance in balances %}
          <label for="balance">${{balance.balance}} {{balance.charity}}</label>
          <a href="{% url 'makePayment' balance.charity %}" class="btn btn-default">Make Payment</a>
+         <br>
     	{%  endfor %}
     {% else %}
         <label for="balance">No balances to display</label>
