@@ -173,7 +173,7 @@ def joinTeam(request):
                     team = Team.objects.get(name=teamName)
                     inviteObject = Invite.objects.get(member=member, team=team)
                     newTeamObject = inviteObject.team
-                    addMemberToTeam(member, newTeamObject, currentTeamObject)
+                    addMemberToTeam(member, newTeamObject, None)
                     inviteObject.delete()
                 except ObjectDoesNotExist:
                     pass
@@ -182,14 +182,18 @@ def joinTeam(request):
                 pass
         elif 'invite_member' in request.POST:
             # Generate code, associate code with email
+            print "inviting member"
             form = InviteTeamForm(request.POST)
+            print form
             if form.is_valid():
+                team = form.cleaned_data['team']
                 username = form.cleaned_data['username']
+                print "inviting "+username+" to team "+ team
                 try:
                     inviteUser = User.objects.get(username=username)
                     inviteMember = Member.objects.get(user=inviteUser)
                     #TODO invite form needs to send team
-                    inviteToTeam = None #form.cleaned_data['team']
+                    inviteToTeam = Team.objects.get(name=team)
                     inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
                 except ObjectDoesNotExist:
                     pass # Error
@@ -198,7 +202,7 @@ def joinTeam(request):
                 pass
         elif 'leave_team' in request.POST:
             #TODO form needs to send team
-            teamToLeave = None #teamToLeave = request.POST['leave_team_name']
+            teamToLeave = request.POST['team']
             leaveTeam(teamToLeave, member)
         elif 'edit_balance' in request.POST:
             edit_balance_member, edit_balance_charity, edit_balance_amount = None, None, None
@@ -212,12 +216,17 @@ def joinTeam(request):
         elif 'change_leader' in request.POST:
             newLeader = request.POST['NewTeamLeader']
             #TODO form needs to send team
-            teamToChange = None #teamToChange = request.POST['leave_team_name']
+            teamToChange = request.POST['team']
             transferLeader(teamToChange, newLeader)
         elif 'change_team_name' in request.POST:
+            print "change name"
             formCTN = ChangeTeamNameForm(request.POST)
+            print formCTN
             if formCTN.is_valid():
+                print "form valid"
                 newTeamName = formCTN.cleaned_data['name']
+                currentTeam = formCTN.cleaned_data['team']
+                print "changing name "+currentTeam+" to "+newTeamName
                 editTeamName(currentTeam, newTeamName)
             else:
                 pass
