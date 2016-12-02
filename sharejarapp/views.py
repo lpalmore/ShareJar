@@ -83,8 +83,7 @@ def teamStats(request, teamName=None):
             # Sum of every donation made by members (former and present) of this team
             donationTotal = Donation.objects.filter(team=team).aggregate(Sum('total'))
             allMemberDonationList = Donation.objects.filter(team=team)
-            currentMembers = TeamMemberList.objects.filter(team=team).values_list('member', flat=True)
-            currentMembers = Member.objects.filter(pk__in=currentMembers).all()
+            currentMembers = TeamMemberList.objects.get(team=team).members.all()
         except ObjectDoesNotExist:
             print "\n Failed to find donation information \n"
 
@@ -172,8 +171,7 @@ def joinTeam(request):
                 try:
                     team = Team.objects.get(name=teamName)
                     inviteObject = Invite.objects.get(member=member, team=team)
-                    newTeamObject = inviteObject.team
-                    addMemberToTeam(member, newTeamObject)
+                    addMemberToTeam(member, team)
                     inviteObject.delete()
                 except ObjectDoesNotExist:
                     pass

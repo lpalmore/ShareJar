@@ -67,9 +67,9 @@ def editTeamName(teamName, newTeamName):
     return
 
 def transferLeader(teamName, newLeaderName):
-    team = Team.objects.all().filter(name=teamName).first()
-    newLeaderUser = User.objects.all().filter(username=newLeaderName).first()
-    newLeader = Member.objects.all().filter(user=newLeaderUser).first()
+    team = Team.objects.get(name=teamName)
+    newLeaderUser = User.objects.get(username=newLeaderName)
+    newLeader = Member.objects.get(user=newLeaderUser)
     #TODO fix error
     team.leader = newLeader
     team.save()
@@ -84,14 +84,14 @@ def getUsernamesInTeam(inTeamName):
     return usernames
 
 def getAllTeamBalances(teamName):
-    team = Team.objects.all().filter(name=teamName).first()
+    team = Team.objects.get(name=teamName)
     memberlist = TeamMemberList.objects.get(team=team)
     teamMembers = []
     for member in memberlist.members.all():
         teamMembers.append(member)
     balances = None
     try:
-        balances = Balances.objects.all().filter(member__in=teamMembers)
+        balances = Balances.objects.all().filter(member__in=teamMembers, team=team)
     except ObjectDoesNotExist:
         pass
     return balances

@@ -24,11 +24,14 @@ def initPayment(userEmail, amount, charityName, charityEmail, teamName=None):
     print teamName
     urlCharityName = charityName.replace(" ", "%20")
     returnURL = ""
+    cancelURL = ""
     if teamName:
         urlTeamName = teamName.replace(" ", "%20")
         returnURL = 'http://localhost:8000/confirmPayment/%s'%urlTeamName
+        cancelURL = 'http://localhost:8000/makePayment/%s/%s'%(urlCharityName, urlTeamName)
     else:
         returnURL = 'http://localhost:8000/confirmPayment'
+        cancelURL = 'http://localhost:8000/makePayment/%s'%urlCharityName
     print returnURL
     print charityName
     payment = Payment({
@@ -45,7 +48,7 @@ def initPayment(userEmail, amount, charityName, charityEmail, teamName=None):
         # Redirect URLs: TODO: These can't stay localhost forever
         "redirect_urls": {
             "return_url": returnURL,#"http://localhost:3000/payment/execute",
-            "cancel_url": 'http://localhost:8000/makePayment/%s'%urlCharityName},#"http://localhost:3000/"},
+            "cancel_url": cancelURL},#"http://localhost:3000/"},
 
         # Transaction
         # A transaction defines the contract of a
