@@ -209,7 +209,7 @@ def joinTeam(request):
                 edit_balance_amount = request.POST['amount']
                 EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount)
         elif 'change_leader' in request.POST:
-            changeLeaderForm = ChangeLeaderForm()
+            changeLeaderForm = ChangeLeaderForm(request.POST)
             if changeLeaderForm.is_valid():
                 newLeader = changeLeaderForm.cleaned_data['NewTeamLeader']
                 teamToChange = changeLeaderForm.cleaned_data['team']
