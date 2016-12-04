@@ -23,6 +23,7 @@ class AddBalanceForm(forms.Form):
     increment = forms.DecimalField(max_digits=5, decimal_places=2, label="Amount")
     charity = forms.ModelChoiceField(queryset=Charity.objects.all(), to_field_name="charityname")
 
+#adds team balance
 class AddTeamBalanceForm(forms.Form):
     increment = forms.DecimalField(max_digits=5, decimal_places=2, label="Amount")
     team = None
@@ -32,10 +33,11 @@ class AddTeamBalanceForm(forms.Form):
         if currentMember is not None:
             self.fields['team'] = TeamModelChoiceField(queryset=currentMember.teammemberlist_set.all())
 
-
+#submit payment
 class MakePaymentForm(forms.Form):
     amount = forms.IntegerField(max_value=100, min_value=1)
 
+#edit charity details
 class EditCharityForm(forms.Form):
    charityname = forms.CharField(max_length=80, label='New Name', required=False)
    description = forms.CharField(max_length=150, label="New Description", required=False)

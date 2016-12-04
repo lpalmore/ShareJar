@@ -28,6 +28,7 @@ def admin_check(user):
     except ObjectDoesNotExist:
         return False
 
+#create account
 def createUser(request):
     #if post request, create the new user
     if request.method == "POST":
@@ -52,6 +53,7 @@ def createUser(request):
     }
     return HttpResponse(template.render(context, request))
 
+#load homepage based on user type
 @login_required
 def home(request):
     current_user = request.user
@@ -64,6 +66,7 @@ def home(request):
     }
     return HttpResponse(template.render(context, request))
 
+#load teams the user is a member or leader of
 @login_required
 def teamStats(request, teamName=None):
     if teamName is None:
@@ -109,6 +112,7 @@ def teamStats(request, teamName=None):
         template = loader.get_template('sharejarapp/teamStatsSpecific.html')
         return HttpResponse(template.render(context, request))
 
+#load page to update balance
 @login_required
 def balance(request):
     current_user = request.user
@@ -140,6 +144,7 @@ def balance(request):
     }
     return HttpResponse(template.render(context, request))
 
+#all functionality used by a team (changing leadership, updating balances, inviting members)
 @login_required
 def joinTeam(request):
     context = {}
@@ -261,6 +266,7 @@ def joinTeam(request):
     '''
     return HttpResponse(template.render(context, request))
 
+#make a donation through payal
 @login_required
 def makePayment(request, charity, team=None):
     # TODO Actually pull the balance from the model
@@ -300,6 +306,7 @@ def makePayment(request, charity, team=None):
             context['team'] = team
     return HttpResponse(template.render(context, request))
 
+#payment confirmation after payal
 @login_required(login_url='/login')
 def confirmPayment(request, etc):
     print 'confirmPayment----------------'
@@ -318,6 +325,7 @@ def confirmPayment(request, etc):
     return HttpResponse(template.render(context, request))
 
 
+#admin can add charity information
 @user_passes_test(admin_check)
 def addCharity(request):
     current_user = request.user
@@ -340,6 +348,7 @@ def addCharity(request):
     }
     return HttpResponse(template.render(context, request))
 
+#admin can search for a charity
 @user_passes_test(admin_check)
 def lookupCharity(request):
     hasSearched = False
@@ -364,6 +373,7 @@ def lookupCharity(request):
         }
         return HttpResponse(template.render(context, request))
 
+#admin can edit charity details
 @user_passes_test(admin_check)
 def editCharity(request, charityName):
     charity = Charity.objects.get(charityname=charityName)
@@ -389,7 +399,7 @@ def editCharity(request, charityName):
     }
     return HttpResponse(template.render(context, request))
 
-
+#admin can remove a charity
 @user_passes_test(admin_check)
 def removeCharity(request):
     hasSearched = False
@@ -414,6 +424,7 @@ def removeCharity(request):
         }
         return HttpResponse(template.render(context, request))
 
+#admin confirms deletion of a charity
 @user_passes_test(admin_check)
 def confirmRemoveCharity(request, charityName):
     charity = Charity.objects.get(charityname=charityName)
@@ -427,6 +438,7 @@ def confirmRemoveCharity(request, charityName):
     }
     return HttpResponse(template.render(context, request))
 
+#admin can delete account
 @user_passes_test(admin_check)
 def deleteAccount(request):
     if request.method == 'POST':
@@ -449,6 +461,7 @@ def deleteAccount(request):
         }
         return HttpResponse(template.render(context, request))
 
+#admin confirms deletion of an account
 @user_passes_test(admin_check)
 def confirmDeleteAccount(request, username):
     user = User.objects.get(username=username)
@@ -465,7 +478,7 @@ def confirmDeleteAccount(request, username):
     return HttpResponse(template.render(context, request))
 
 
-
+#admin can edit balance
 @user_passes_test(admin_check)
 def editBalance(request):
     template = loader.get_template('sharejarapp/editBalance.html')

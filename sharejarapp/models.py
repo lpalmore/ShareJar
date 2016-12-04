@@ -16,8 +16,6 @@ class Admin(models.Model):
 	# Admin user with priviledge to add charity
 	user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
-# Just an idea, but maybe include a Log page for admins so that each
-# can see who added/updated/deleted a charity
 class Log(models.Model):
 	ADDED = 'A'
 	UPDATED = 'U'
