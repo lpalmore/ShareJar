@@ -3,12 +3,15 @@
 #Install Guide 
 
 ##Installation Information: Not applicable
-##Pre-requisites: Users must have a PayPal account for donations and an email to create an account
+##Pre-requisites
+    Users must have a PayPal account for donations
+    Users muust have an email to create an account
 ##Dependent Libraries that must be installed: Not applicable
 ##Download instructions: Not applicable
 ##Build instructions: Not applicable
 ##Installation of actual application: Not applicable
-##Run instructions: go to https://sharejar.herokuapp.com/
+##Run instructions
+    go to https://sharejar.herokuapp.com/
 ##Troubleshooting: Not applicable
 
 #Release Notes
