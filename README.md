@@ -1,27 +1,24 @@
 # ShareJar
 
-##Clone this repository
-$ git clone https://github.com/lpalmore/ShareJar.git
+##Install Guide 
 
-##Setting up Virtual Environment
-$ pip install virtualenv  
-$virtualenv -p /usr/bin/python2.7 venv  
-$ cd ShareJar  
-/ShareJar $ source venv/bin/activate (this is for a Mac)  
+Installation Information: (Not applicable) 
+Pre-requisites: Users must have a PayPal account for donations and an email to create an account. 
+Dependent Libraries that must be installed: Not applicable
+Download instructions: Not applicable
+Build instructions: Not applicable
+Installation of actual application: Not applicable
+Run instructions: go to (insert site link)
+Troubleshooting: Not applicable
 
-##Download requirements
-(venv) $ pip install –r requirements.txt
+##Release Notes
 
-##Start the App
-/ShareJar $ source venv/bin/activate  
-/ShareJar $ python manage.py runserver  
-See the app running by going to http://127.0.0.1:8000/  
+NEW FEATURES 
+    Added ability for users to create teams with a team name and sponsored charity
+    Added ability to invite users to a team
 
-##Creating Users (temporarily)
-/ShareJar/sharejarsite $ python manage.py createsuperuser  
+BUG FIXES 
+    New users cannot create an account with existing username
 
-##Deactivate the virtual environment
-(venv) $ deactivate
-
-##After downloading anything using pip for this project, please run this
-$ pip freeze > requirements.txt
+KNOWN BUGS 
+    User may receive multiple invites from a team that they are already on if a user on the team sends them an invite again
