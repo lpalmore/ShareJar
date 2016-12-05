@@ -13,12 +13,12 @@
 
 #Release Notes
 
-##NEW FEATURES 
+##New Features 
     Added ability for users to create teams with a team name and sponsored charity
     Added ability to invite users to a team
 
-##BUG FIXES 
+##Bug Fixes
     New users cannot create an account with existing username
 
-##KNOWN BUGS 
+##Known Bugs
     User may receive multiple invites from a team that they are already on if a user on the team sends them an invite again
