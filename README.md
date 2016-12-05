@@ -1,15 +1,15 @@
 # ShareJar
 
-##Install Guide 
+#Install Guide 
 
-Installation Information: (Not applicable) 
-Pre-requisites: Users must have a PayPal account for donations and an email to create an account. 
-Dependent Libraries that must be installed: Not applicable
-Download instructions: Not applicable
-Build instructions: Not applicable
-Installation of actual application: Not applicable
-Run instructions: go to (insert site link)
-Troubleshooting: Not applicable
+##Installation Information: (Not applicable) 
+##Pre-requisites: Users must have a PayPal account for donations and an email to create an account. 
+##Dependent Libraries that must be installed: Not applicable
+##Download instructions: Not applicable
+##Build instructions: Not applicable
+##Installation of actual application: Not applicable
+##Run instructions: go to (insert site link)
+##Troubleshooting: Not applicable
 
 #Release Notes
 
