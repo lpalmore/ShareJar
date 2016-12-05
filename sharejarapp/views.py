@@ -8,6 +8,7 @@ from django.contrib.auth import login
 from django.http import HttpResponseRedirect
 from models import Balances, Member, Charity, Team, TeamMemberList, Invite, Admin, Donation
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from django.db.models import Sum
 from django.urls import reverse
 
@@ -194,7 +195,10 @@ def joinTeam(request):
                     inviteMember = Member.objects.get(user=inviteUser)
                     #TODO invite form needs to send team
                     inviteToTeam = Team.objects.get(name=team)
-                    inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
+                    try:
+                        inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
+                    except IntegrityError:
+                        pass # Member already has an invite to this team
                 except ObjectDoesNotExist:
                     pass # Error
                 #Send a notification and code to email provided
@@ -287,7 +291,7 @@ def makePayment(request, charity, team=None):
             memberEmail = Member.objects.get(user=current_user).paypal_email
             charityEmail = Charity.objects.get(charityname=charity).paypal_email
             amount = form.cleaned_data['amount']
-            if team:  
+            if team:
                 redirectURL = createPayment(memberEmail, amount, charity, charityEmail, team)
             else:
                 redirectURL = createPayment(memberEmail, amount, charity, charityEmail)

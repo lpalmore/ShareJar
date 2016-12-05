@@ -73,3 +73,5 @@ class Invite(models.Model):
 	team = models.ForeignKey(Team)
 	def __unicode__(self):
 		return u'{0}'.format(self.team.name)
+	class Meta:
+		unique_together = (("member", "team"))
