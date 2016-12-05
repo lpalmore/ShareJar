@@ -29,6 +29,8 @@ def addMemberToTeam(member, team=None):
     teamName: String
     member: member id of user
 '''
+#Allows the user to leave a specific team. Takes user off team list.
+#Updates team leader if user is current team leader.
 def leaveTeam(teamName, member):
     team = Team.objects.get(name=teamName)
 
@@ -50,9 +52,11 @@ def leaveTeam(teamName, member):
             team.save()
     return
 
+#returns True if the user is the leader of a team
 def isLeader(member):
     return Team.objects.all().filter(leader=member).first != None
 
+#deletes the team from the database
 def deleteTeam(teamName):
     team = Team.objects.get(name=teamName)
     teamMembers = TeamMemberList.objects.get(team=team).delete()
@@ -60,12 +64,14 @@ def deleteTeam(teamName):
     #teamMembers = TeamMemberList.objects.get(team=team).delete() #deleting team
     return
 
+#edits the name of the team
 def editTeamName(teamName, newTeamName):
     team = Team.objects.all().filter(name=teamName).first()
     team.name = newTeamName
     team.save()
     return
 
+#transfers the leader position to a chosen member of the team
 def transferLeader(teamName, newLeaderName):
     team = Team.objects.get(name=teamName)
     newLeaderUser = User.objects.get(username=newLeaderName)
@@ -75,6 +81,7 @@ def transferLeader(teamName, newLeaderName):
     team.save()
     return
 
+#returns the list of usernames for users on a team
 def getUsernamesInTeam(inTeamName):
     team = Team.objects.all().filter(name=inTeamName).first()
     memberlist = TeamMemberList.objects.get(team=team)
@@ -83,6 +90,7 @@ def getUsernamesInTeam(inTeamName):
         usernames.append(member.user.username)
     return usernames
 
+#gets the balances for each member (for that team) on a team
 def getAllTeamBalances(teamName):
     team = Team.objects.get(name=teamName)
     memberlist = TeamMemberList.objects.get(team=team)
@@ -96,6 +104,7 @@ def getAllTeamBalances(teamName):
         pass
     return balances
 
+#Allows the team leader to edit the balance of team members
 def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount):
     user = User.objects.all().filter(username=edit_balance_member).first()
     member = Member.objects.all().filter(user=user)
@@ -113,6 +122,7 @@ def EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balanc
         return True
     return False
 
+#Gets all the teams a user is on
 def GetTeams(teamMember):
     teamName = teamMember.teammemberlist_set.all()
     teams =[]
