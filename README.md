@@ -8,7 +8,7 @@
 ##Download instructions: Not applicable
 ##Build instructions: Not applicable
 ##Installation of actual application: Not applicable
-##Run instructions: go to (insert site link)
+##Run instructions: go to https://sharejar.herokuapp.com/
 ##Troubleshooting: Not applicable
 
 #Release Notes
