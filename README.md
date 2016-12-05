@@ -2,8 +2,8 @@
 
 #Install Guide 
 
-##Installation Information: (Not applicable) 
-##Pre-requisites: Users must have a PayPal account for donations and an email to create an account. 
+##Installation Information: Not applicable
+##Pre-requisites: Users must have a PayPal account for donations and an email to create an account
 ##Dependent Libraries that must be installed: Not applicable
 ##Download instructions: Not applicable
 ##Build instructions: Not applicable
