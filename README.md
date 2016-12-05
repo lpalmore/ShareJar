@@ -14,7 +14,7 @@
     go to https://sharejar.herokuapp.com/
 ##Troubleshooting: Not applicable
 
-#Release Notes
+#Release Notes version ShareJar 1.0 
 
 ##New Features 
     Added ability for users to create teams with a team name and sponsored charity
