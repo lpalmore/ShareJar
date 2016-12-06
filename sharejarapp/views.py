@@ -67,16 +67,17 @@ def home(request):
     }
     return HttpResponse(template.render(context, request))
 
-#load teams the user is a member or leader of
+#displays breakdown of each team's contributions
 @login_required
 def teamStats(request, teamName=None):
     if teamName is None:
+        # Give the template a list of team names
         teams = Team.objects.all()
         template = loader.get_template('sharejarapp/teamStats.html')
         context = { 'teams': teams }
         return HttpResponse(template.render(context, request))
     else:
-        print "Team name:" + teamName
+        # Display team stats about the given team
         team = None
         donationTotal = None
         allMemberDonationList = None
@@ -98,8 +99,8 @@ def teamStats(request, teamName=None):
 
         context['donationTotal'] = donationTotal
         if allMemberDonationList and currentMembers:
-            print "\n\n\n WTF"
-            print currentMembers
+            # Sort into two lists which Donations are from former members, and
+            # which are from current members
             currentMemberDonations = [ob for ob in allMemberDonationList if ob.member in currentMembers]
             formerMemberDonations = [ob for ob in allMemberDonationList if ob.member not in currentMembers]
 
