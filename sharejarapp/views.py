@@ -11,16 +11,17 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.db.models import Sum
 from django.urls import reverse
-
+from django.views.generic import TemplateView
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-
+from django.views.generic import View
 from .forms import MakePaymentForm
 from paypalrestsdk import Payment
 from paypal import createPayment, executePayment
 from django.shortcuts import redirect
 from team_helpers import addMemberToTeam, GetTeams, leaveTeam, isLeader, getUsernamesInTeam, EditTeamMemberBalance, getAllTeamBalances, transferLeader, editTeamName
 from balance_helpers import getAllBalance, getTeamBalance, addToTeamBalance, addToBalance
+
 
 def admin_check(user):
     try:
@@ -54,18 +55,6 @@ def createUser(request):
     }
     return HttpResponse(template.render(context, request))
 
-#load homepage based on user type
-@login_required
-def home(request):
-    current_user = request.user
-    try:
-        admin = Admin.objects.get(user=current_user)
-        template = loader.get_template('sharejarapp/adminIndex.html')
-    except ObjectDoesNotExist:
-        template = loader.get_template('sharejarapp/index.html')
-    context = {
-    }
-    return HttpResponse(template.render(context, request))
 
 #displays breakdown of each team's contributions
 @login_required
@@ -113,163 +102,6 @@ def teamStats(request, teamName=None):
 
         template = loader.get_template('sharejarapp/teamStatsSpecific.html')
         return HttpResponse(template.render(context, request))
-
-#load page to update balance
-@login_required
-def balance(request):
-    current_user = request.user
-    member = Member.objects.get(user=current_user)
-    if request.method == "POST":
-        directform = AddBalanceForm(request.POST)
-        teamform = AddTeamBalanceForm(request.POST, member=member)
-        if directform.is_valid():
-            increment = directform.cleaned_data['increment']
-            charityname= directform.cleaned_data['charity']
-            addToBalance(member, charityname, increment)
-        if teamform.is_valid():
-            increment = teamform.cleaned_data['increment']
-            teamMemberList = teamform.cleaned_data['team']
-            team = teamMemberList.team
-            addToTeamBalance(member, team, increment)
-    #get balance info and create add balance form
-    balances = getAllBalance(current_user)
-    teambalances = getTeamBalance(current_user)
-    directform = AddBalanceForm()
-    teamform = AddTeamBalanceForm(member=member)
-
-    template = loader.get_template('sharejarapp/balance.html')
-    context = {
-        'balances': balances,
-        'directform': directform,
-        'teambalances': teambalances,
-        'teamform': teamform
-    }
-    return HttpResponse(template.render(context, request))
-
-#all functionality used by a team (changing leadership, updating balances, inviting members)
-@login_required
-def joinTeam(request):
-    context = {}
-    template = loader.get_template('sharejarapp/joinTeam.html')
-    current_user = request.user
-    member = Member.objects.get(user=current_user)
-    context['createTeamForm'] = CreateTeamForm()
-    context['inviteTeamForm'] = InviteTeamForm()
-    context['changeTeamNameForm'] = ChangeTeamNameForm()
-    context['joinTeamForm'] = JoinTeamForm(member=member)
-
-    #process all post requests
-    if request.method == 'POST':
-        #Determine which form was submitted
-        if 'create_team' in request.POST:
-            createTeamForm = CreateTeamForm(request.POST)
-            print createTeamForm
-            if createTeamForm.is_valid():
-                #Add team with this name to the DB
-                newTeamObject = Team.objects.create(name=createTeamForm.cleaned_data['name'], charity=createTeamForm.cleaned_data['charity'], leader=member)
-                newTeamObject.save()
-                addMemberToTeam(member, newTeamObject)
-            else:
-                context['createTeamForm'] = createTeamForm
-        elif 'join_team' in request.POST:
-            form = JoinTeamForm(request.POST, member=member)
-            if form.is_valid():
-                teamName = form.cleaned_data['team']
-                try:
-                    team = Team.objects.get(name=teamName)
-                    inviteObject = Invite.objects.get(member=member, team=team)
-                    addMemberToTeam(member, team)
-                    inviteObject.delete()
-                except ObjectDoesNotExist:
-                    pass
-            else:
-                #form error
-                pass
-        elif 'invite_member' in request.POST:
-            # Generate code, associate code with email
-            form = InviteTeamForm(request.POST)
-            if form.is_valid():
-                team = form.cleaned_data['team']
-                username = form.cleaned_data['username']
-                try:
-                    inviteUser = User.objects.get(username=username)
-                    inviteMember = Member.objects.get(user=inviteUser)
-                    #TODO invite form needs to send team
-                    inviteToTeam = Team.objects.get(name=team)
-                    try:
-                        inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
-                    except IntegrityError:
-                        pass # Member already has an invite to this team
-                except ObjectDoesNotExist:
-                    pass # Error
-                #Send a notification and code to email provided
-            else:
-                pass
-        elif 'leave_team' in request.POST:
-            leaveTeamForm = LeaveTeamForm(request.POST)
-            if leaveTeamForm.is_valid():
-                teamToLeave = leaveTeamForm.cleaned_data['team']
-                leaveTeam(teamToLeave, member)
-        elif 'edit_balance' in request.POST:
-            editBalanceForm = EditBalanceForm(request.POST)
-            print editBalanceForm
-            if editBalanceForm.is_valid():
-                edit_balance_member = editBalanceForm.cleaned_data['member']
-                edit_balance_charity = request.POST['charity'].split('_')[1]
-                edit_balance_amount = request.POST['amount']
-                EditTeamMemberBalance(edit_balance_member, edit_balance_charity, edit_balance_amount)
-        elif 'change_leader' in request.POST:
-            changeLeaderForm = ChangeLeaderForm(request.POST)
-            if changeLeaderForm.is_valid():
-                newLeader = changeLeaderForm.cleaned_data['NewTeamLeader']
-                teamToChange = changeLeaderForm.cleaned_data['team']
-                transferLeader(teamToChange, newLeader)
-        elif 'change_team_name' in request.POST:
-            formCTN = ChangeTeamNameForm(request.POST)
-            if formCTN.is_valid():
-                newTeamName = formCTN.cleaned_data['name']
-                currentTeam = formCTN.cleaned_data['team']
-                editTeamName(currentTeam, newTeamName)
-            else:
-                pass
-        else:
-            pass #Error!
-
-    #retrieve teams information
-    teams = GetTeams(member)
-    TeamsInfo = []
-    for t in teams:
-        teamInfo = {}
-        if t.leader == member:
-            membernames = getUsernamesInTeam(t)
-            teamInfo['membernames'] = membernames
-            memberbalances = getAllTeamBalances(t)
-            teamInfo['memberbalances'] = memberbalances
-            #add choose charity here
-        TeamsInfo.append((t, teamInfo))
-    context["TeamsInfo"] = TeamsInfo
-    context["hasTeam"] = (len(teams) != 0)
-    context["username"] = member.user.username
-
-
-    ''' Do we still want to not allow people with outstandng balances from joining a team?
-    #Does this member have an outstanding balance?
-    outstandingBalances = None
-    try:
-        outstandingBalances = Balances.objects.filter(member=member).aggregate(Sum('balance'))
-        outstandingBalances = outstandingBalances['balance__sum']
-    except ObjectDoesNotExist:
-        pass
-    if outstandingBalances == None or outstandingBalances == 0:
-        #This user may create or join a new team
-        context['createTeamForm'] = CreateTeamForm()
-        context['inviteTeamForm'] = InviteTeamForm()
-        context['changeTeamNameForm'] = ChangeTeamNameForm()
-        context['joinTeamForm'] = JoinTeamForm(member=member)
-    else:
-        print "You have outstanding balances!" + str(outstandingBalances)
-    '''
-    return HttpResponse(template.render(context, request))
 
 #make a donation through payal
 @login_required
@@ -482,11 +314,123 @@ def confirmDeleteAccount(request, username):
     }
     return HttpResponse(template.render(context, request))
 
+#all functionality used by a team (changing leadership, updating balances, inviting members)
+class JoinTeamView(View):
+    template_name = 'sharejarapp/joinTeam.html'
+    context = {}
+    def addBlankForms(self, member):
+        self.context['createTeamForm'] = CreateTeamForm()
+        self.context['inviteTeamForm'] = InviteTeamForm()
+        self.context['changeTeamNameForm'] = ChangeTeamNameForm()
+        self.context['joinTeamForm'] = JoinTeamForm(member=member)
+    def generateTeamInfo(self, member):
+        teams = GetTeams(member)
+        TeamsInfo = []
+        for t in teams:
+            teamInfo = {}
+            if t.leader == member:
+                membernames = getUsernamesInTeam(t)
+                teamInfo['membernames'] = membernames
+                memberbalances = getAllTeamBalances(t)
+                teamInfo['memberbalances'] = memberbalances
+            TeamsInfo.append((t, teamInfo))
+        self.context["TeamsInfo"] = TeamsInfo
+        self.context["hasTeam"] = (len(teams) != 0)
+        self.context["username"] = member.user.username
+    def get(self, request):
+        current_user = request.user
+        member = Member.objects.get(user=current_user)
+        self.addBlankForms(member) # add forms to context
+        self.generateTeamInfo(member)
+        return render(request, self.template_name, self.context)
+    def post(self, request):
+        current_user = request.user
+        member = Member.objects.get(user=current_user)
+        self.addBlankForms(member) # add forms to context
+        #process forms
+        createTeamForm = CreateTeamForm(request.POST)
+        joinTeamForm = JoinTeamForm(request.POST, member=member)
+        inviteTeamForm = InviteTeamForm(request.POST)
+        leaveTeamForm = LeaveTeamForm(request.POST)
+        editBalanceForm = EditBalanceForm(request.POST)
+        changeLeaderForm = ChangeLeaderForm(request.POST)
+        formCTN = ChangeTeamNameForm(request.POST)
+        #Determine which form was submitted
+        if 'create_team' in request.POST and createTeamForm.is_valid():
+                newTeamObject = Team.objects.create(name=createTeamForm.cleaned_data['name'], charity=createTeamForm.cleaned_data['charity'], leader=member)
+                newTeamObject.save()
+                addMemberToTeam(member, newTeamObject)
+        elif 'join_team' in request.POST and joinTeamForm.is_valid():
+                teamName = form.cleaned_data['team']
+                try:
+                    inviteObject = Invite.objects.get(member=member, team=team)
+                    addMemberToTeam(member, Team.objects.get(name=teamName))
+                    inviteObject.delete()
+                except ObjectDoesNotExist:
+                    pass
+        elif 'invite_member' in request.POST and inviteTeamForm.is_valid():
+                team = inviteTeamForm.cleaned_data['team']
+                username = inviteTeamForm.cleaned_data['username']
+                try:
+                    inviteUser = User.objects.get(username=username)
+                    inviteMember = Member.objects.get(user=inviteUser)
+                    inviteToTeam = Team.objects.get(name=team)
+                    try:
+                        inviteObject = Invite.objects.create(team=inviteToTeam, member=inviteMember)
+                    except IntegrityError:
+                        pass # Member already has an invite to this team
+                except ObjectDoesNotExist:
+                    pass # Error
+        elif 'edit_balance' in request.POST and editBalanceForm.is_valid():
+                edit_balance_member = editBalanceForm.cleaned_data['member']
+                edit_balance_charity = request.POST['charity'].split('_')[1]
+                edit_balance_amount = request.POST['amount']
+                EditTeamMemberBalance(editBalanceForm.cleaned_data['member'], request.POST['charity'].split('_')[1], request.POST['amount'])
+        elif 'change_leader' in request.POST and changeLeaderForm.is_valid():
+                transferLeader(changeLeaderForm.cleaned_data['team'], changeLeaderForm.cleaned_data['NewTeamLeader'])
+        elif 'change_team_name' in request.POST and formCTN.is_valid():
+                editTeamName(formCTN.cleaned_data['team'], formCTN.cleaned_data['name'])
+        elif 'leave_team' in request.POST:
+                leaveTeam(leaveTeamForm.cleaned_data['team'], member)
+        self.generateTeamInfo(member)
+        return render(request, self.template_name, self.context)
 
-#admin can edit balance
-@user_passes_test(admin_check)
-def editBalance(request):
-    template = loader.get_template('sharejarapp/editBalance.html')
-    context = {
-    }
-    return HttpResponse(template.render(context, request))
+class BalancePageView(View):
+    template_name = 'sharejarapp/balance.html'
+    title = 'Balances'
+    context = {}
+    def set_context(self, current_user, member):
+        self.context['balances'] = getAllBalance(current_user)
+        self.context['teambalances'] = getTeamBalance(current_user)
+        self.context['directform'] = AddBalanceForm()
+        self.context['teamform'] = AddTeamBalanceForm(member=member)
+        self.context['title'] = self.title
+    def get(self, request):
+        current_user = request.user
+        member = Member.objects.get(user=current_user)
+        self.set_context(current_user, member)
+        return render(request, self.template_name, self.context)
+    def post(self, request):
+        current_user = request.user
+        member = Member.objects.get(user=request.user)
+        directform = AddBalanceForm(request.POST)
+        teamform = AddTeamBalanceForm(request.POST, member=member)
+        if directform.is_valid():
+            formData = directform.cleaned_data
+            addToBalance(member, formData['charity'], formData['increment'])
+        if teamform.is_valid():
+            formData = teamform.cleaned_data
+            addToTeamBalance(member, formData['team'].team, formData['increment'])
+        self.set_context(current_user, member)
+        return render(request, self.template_name, self.context)
+
+class HomePageView(View):
+    template_name = 'sharejarapp/index.html'
+    title = 'ShareJar'
+    def get(self, request):
+        current_user = request.user
+        if Admin.objects.filter(user=current_user).exists():
+            self.template_name = 'sharejarapp/adminIndex.html'
+            self.title = "ShareJar Admin Page"
+        context = {'title': self.title}
+        return render(request, self.template_name, context)
