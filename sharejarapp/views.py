@@ -30,138 +30,6 @@ def admin_check(user):
     except ObjectDoesNotExist:
         return False
 
-#create account
-def createUser(request):
-    #if post request, create the new user
-    if request.method == "POST":
-        form = UserForm(request.POST)
-        print form.is_valid()
-        if form.is_valid():
-            user = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            newUser = User.objects.create_user(user, email, password)
-            newUser.save() #so there will not be multiple users
-            # Create derived member
-            member = Member(user=newUser,
-                            paypal_email=form.cleaned_data['paypalEmail'])
-            member.save()
-            return HttpResponseRedirect('login')
-    else:
-        form = UserForm()
-    template = loader.get_template('registration/createUser.html')
-    context = {
-        'form': form,
-    }
-    return HttpResponse(template.render(context, request))
-
-
-#displays breakdown of each team's contributions
-@login_required
-def teamStats(request, teamName=None):
-    if teamName is None:
-        # Give the template a list of team names
-        teams = Team.objects.all()
-        template = loader.get_template('sharejarapp/teamStats.html')
-        context = { 'teams': teams }
-        return HttpResponse(template.render(context, request))
-    else:
-        # Display team stats about the given team
-        team = None
-        donationTotal = None
-        allMemberDonationList = None
-        currentMembers = None
-        context = {'teamName':teamName}
-        try:
-            team = Team.objects.get(name=teamName)
-            # Sum of every donation made by members (former and present) of this team
-            donationTotal = Donation.objects.filter(team=team).aggregate(Sum('total'))
-            allMemberDonationList = Donation.objects.filter(team=team)
-            currentMembers = TeamMemberList.objects.get(team=team).members.all()
-        except ObjectDoesNotExist:
-            print "\n Failed to find donation information \n"
-
-        if donationTotal['total__sum'] == None:
-            donationTotal = 0
-        else:
-            donationTotal = donationTotal['total__sum']
-
-        context['donationTotal'] = donationTotal
-        if allMemberDonationList and currentMembers:
-            # Sort into two lists which Donations are from former members, and
-            # which are from current members
-            currentMemberDonations = [ob for ob in allMemberDonationList if ob.member in currentMembers]
-            formerMemberDonations = [ob for ob in allMemberDonationList if ob.member not in currentMembers]
-
-            if currentMemberDonations:
-                context['currentMemberDonations'] = currentMemberDonations
-            if formerMemberDonations:
-                context['formerMemberDonations'] = formerMemberDonations
-        else:
-            print "No Donations to show"
-
-        template = loader.get_template('sharejarapp/teamStatsSpecific.html')
-        return HttpResponse(template.render(context, request))
-
-#make a donation through payal
-@login_required
-def makePayment(request, charity, team=None):
-    # TODO Actually pull the balance from the model
-    print "makePayment -----------"
-    print charity
-    print team
-    member = Member.objects.get(user=request.user)
-    if team:
-        teamObj = Team.objects.get(name=team)
-        balance = Balances.objects.get(member=member, team=teamObj)
-    else:
-        charityObj = Charity.objects.get(charityname=charity)
-        balance = Balances.objects.get(member=member, charity=charityObj, team=None)
-    if request.method == 'POST':
-        form = MakePaymentForm(request.POST)
-        if form.is_valid():
-            current_user = request.user
-            memberEmail = Member.objects.get(user=current_user).paypal_email
-            charityEmail = Charity.objects.get(charityname=charity).paypal_email
-            amount = form.cleaned_data['amount']
-            if team:
-                redirectURL = createPayment(memberEmail, amount, charity, charityEmail, team)
-            else:
-                redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
-            if redirectURL:
-                return redirect(redirectURL)
-            else:
-                return redirect('/balances/')
-                pass
-        else:
-            # Form data isn't valid. Notify the user
-            pass
-    else:
-        template = loader.get_template('sharejarapp/makepayment.html')
-        context = {"charity": charity, "balance": balance, "paymentForm":MakePaymentForm()}
-        if team:
-            context['team'] = team
-    return HttpResponse(template.render(context, request))
-
-#payment confirmation after payal
-@login_required(login_url='/login')
-def confirmPayment(request, etc):
-    print 'confirmPayment----------------'
-    teamName = etc[1:]
-    payerID = request.GET.get('PayerID', '')
-    paymentID = request.GET.get('paymentId', '')
-    print 'payerID: ' + payerID
-    print 'paymentID: ' + paymentID
-    current_user = request.user
-    member = Member.objects.get(user=current_user)
-    success = executePayment(payerID, paymentID, member, teamName)
-    template = loader.get_template('sharejarapp/confirmPayment.html')
-    context = {
-        'success': success
-    }
-    return HttpResponse(template.render(context, request))
-
-
 #admin can add charity information
 @user_passes_test(admin_check)
 def addCharity(request):
@@ -314,6 +182,110 @@ def confirmDeleteAccount(request, username):
     }
     return HttpResponse(template.render(context, request))
 
+
+
+#payment confirmation after payal
+class ConfirmPaymentView(View):
+    template_name = 'sharejarapp/confirmPayment.html'
+    def get(self, request, etc):
+        teamName = etc[1:]
+        payerID = request.GET.get('PayerID', '')
+        paymentID = request.GET.get('paymentId', '')
+        member = Member.objects.get(user=request.user)
+        success = executePayment(payerID, paymentID, member, teamName)
+        return render(request, self.template_name, {'sucess': success})
+
+#make a donation through payal
+class MakePaymentView(View):
+    template_name = 'sharejarapp/makepayment.html'
+    balance = None
+    def setInfo(self, user, charity, team):
+        member = Member.objects.get(user=user)
+        if team:
+            teamObj = Team.objects.get(name=team)
+            self.balance = Balances.objects.get(member=member, team=teamObj)
+        else:
+            charityObj = Charity.objects.get(charityname=charity)
+            self.balance = Balances.objects.get(member=member, charity=charityObj, team=None)
+        return
+    def get(self, request, charity, team=None):
+        self.setInfo(request.user, charity, team)
+        context = {"charity": charity, "balance": self.balance, "paymentForm":MakePaymentForm()}
+        if team:
+            context['team'] = team
+        return render(request, self.template_name, context)
+    def post(self, request, charity, team):
+        self.setInfo(request.user, charity, team)
+        form = MakePaymentForm(request.POST)
+        if form.is_valid():
+            memberEmail = Member.objects.get(user=request.user).paypal_email
+            charityEmail = Charity.objects.get(charityname=charity).paypal_email
+            amount = form.cleaned_data['amount']
+            if team:
+                redirectURL = createPayment(memberEmail, amount, charity, charityEmail, team)
+            else:
+                redirectURL = createPayment(memberEmail, amount, charity, charityEmail)
+            if redirectURL:
+                return redirect(redirectURL)
+            else:
+                return redirect('/balances/')
+
+#displays breakdown of each team's contributions
+class TeamStatsView(View):
+    template_name = 'sharejarapp/teamStats.html'
+    def get(self, request, teamName=None):
+        if teamName is None:
+            teams = Team.objects.all()
+            return render(request, self.template_name, { 'teams': teams })
+        else:
+            self.template_name = 'sharejarapp/teamStatsSpecific.html'
+            # Display team stats about the given team
+            team, donationTotal, allMemberDonationList, currentMembers = None, None, None, None
+            context = {'teamName':teamName}
+            try:
+                team = Team.objects.get(name=teamName)
+                # Sum of every donation made by members (former and present) of this team
+                donationTotal = Donation.objects.filter(team=team).aggregate(Sum('total'))
+                allMemberDonationList = Donation.objects.filter(team=team)
+                currentMembers = TeamMemberList.objects.get(team=team).members.all()
+            except ObjectDoesNotExist:
+                print "\n Failed to find donation information \n"
+            if donationTotal['total__sum'] == None:
+                donationTotal = 0
+            else:
+                donationTotal = donationTotal['total__sum']
+            context['donationTotal'] = donationTotal
+            if allMemberDonationList and currentMembers:
+                # Sort into two lists which Donations are from former members, and
+                # which are from current members
+                currentMemberDonations = [ob for ob in allMemberDonationList if ob.member in currentMembers]
+                formerMemberDonations = [ob for ob in allMemberDonationList if ob.member not in currentMembers]
+
+                if currentMemberDonations:
+                    context['currentMemberDonations'] = currentMemberDonations
+                if formerMemberDonations:
+                    context['formerMemberDonations'] = formerMemberDonations
+            else:
+                print "No Donations to show"
+            return render(request, self.template_name, context)
+
+class CreateUserView(View):
+    template_name = 'registration/createUser.html'
+    def get(self, request):
+        form = UserForm()
+        return render(request, self.template_name, {'form': form})
+    def post(self, request):
+        form = UserForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            newUser = User.objects.create_user(data['username'], data['email'], data['password'])
+            newUser.save()
+            member = Member(user=newUser, paypal_email=data['paypalEmail'])
+            member.save()
+            return HttpResponseRedirect('login')
+        else:
+            return get(request)
+
 #all functionality used by a team (changing leadership, updating balances, inviting members)
 class JoinTeamView(View):
     template_name = 'sharejarapp/joinTeam.html'
@@ -425,6 +397,7 @@ class BalancePageView(View):
         return render(request, self.template_name, self.context)
 
 class HomePageView(View):
+    login_required = True
     template_name = 'sharejarapp/index.html'
     title = 'ShareJar'
     def get(self, request):
