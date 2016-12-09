@@ -1,23 +1,8 @@
-{% extends "base.html" %}
+{% extends "admin.html" %}
 {% load static %}
 
 {% block content %}
-<nav class="navbar navbar-inverse">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
-    </div>
-    <ul id="sharejarnav" class="nav navbar-nav navbar-right">
-      <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
-      <li class="active">{% block navremcharity %} <a href="{% url 'removeCharity' %}">Remove Charity</a>{% endblock %}</li>
-      <li>{% block naveditcharity %} <a href="{% url 'lookupCharity' %}">Edit Charity</a>{% endblock %}</li>
-      <li>{% block navdelaccount  %} <a href="{% url 'deleteAccount' %}">Delete Account</a>{% endblock %}</li>
-    </ul>
-    <ul class="nav navbar-nav">
-      <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-    </ul>
-  </div>
-</nav>
+
 <div class="container">
 
 <div class="home">

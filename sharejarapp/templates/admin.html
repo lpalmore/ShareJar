@@ -1,0 +1,41 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Share Jar</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "/css/bootstrap.min.css" %}">
+    <link rel="stylesheet" href="{% static "styles.css" %}">
+    <script src="{% static "jquery.min.js" %}"></script>
+    <script src="{% static "/js/bootstrap.min.js" %}"></script>
+
+  </head>
+
+<body>
+
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{% url 'home' %}">ShareJar</a>
+      </div>
+      <ul id="sharejarnav" class="nav navbar-nav navbar-right">
+        <li>{% block navaddcharity %} <a href="{% url 'addCharity' %}">Add Charity</a>{% endblock %}</li>
+        <li>{% block navremcharity %} <a href="{% url 'removeCharity' %}">Remove Charity</a>{% endblock %}</li>
+        <li>{% block naveditcharity %} <a href="{% url 'lookupCharity' %}">Edit Charity</a>{% endblock %}</li>
+        <li>{% block navdelaccount  %} <a href="{% url 'deleteAccount' %}">Delete User Account</a>{% endblock %}</li>
+      </ul>
+      <ul class="nav navbar-nav">
+        <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+      </ul>
+    </div>
+</nav>
+
+<div class="container">
+  {% block content%}
+
+  {% endblock %}
+</div>
+</body>
+</html>
