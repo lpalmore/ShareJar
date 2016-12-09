@@ -284,7 +284,7 @@ class CreateUserView(View):
             member.save()
             return HttpResponseRedirect('login')
         else:
-            return get(request)
+            return render(request, self.template_name, {'form': form})
 
 #all functionality used by a team (changing leadership, updating balances, inviting members)
 class JoinTeamView(View):
@@ -397,13 +397,15 @@ class BalancePageView(View):
         return render(request, self.template_name, self.context)
 
 class HomePageView(View):
-    login_required = True
     template_name = 'sharejarapp/index.html'
     title = 'ShareJar'
     def get(self, request):
         current_user = request.user
-        if Admin.objects.filter(user=current_user).values().exists():
+        try:
+            admin = Admin.objects.get(user=current_user)
             self.template_name = 'sharejarapp/adminIndex.html'
             self.title = "ShareJar Admin Page"
+        except ObjectDoesNotExist:
+            pass
         context = {'title': self.title}
         return render(request, self.template_name, context)
