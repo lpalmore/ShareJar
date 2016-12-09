@@ -402,7 +402,7 @@ class HomePageView(View):
     title = 'ShareJar'
     def get(self, request):
         current_user = request.user
-        if Admin.objects.filter(user=current_user).exists():
+        if Admin.objects.filter(user=current_user).values().exists():
             self.template_name = 'sharejarapp/adminIndex.html'
             self.title = "ShareJar Admin Page"
         context = {'title': self.title}
